@@ -277,12 +277,14 @@ export const MapView: React.FC = () => {
       doubleClickZoom: true,
       touchZoomRotate: true,
       touchPitch: true,
+      renderWorldCopies: true,
     });
 
     map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right');
 
     map.on('load', () => {
       mapRef.current = map;
+      (window as any).__map = map;
       setMapInstance(map);
       setMapLoaded(true);
 
@@ -850,6 +852,93 @@ export const MapView: React.FC = () => {
         const src = map.getSource('all-ais-source') as GeoJSONSource;
         src.setData(backgroundAisGeoJSON);
       }
+
+      // 9. All Incident Centroids (Permanently visible on Common Global Map at all zoom levels)
+      const incidentPointsGeoJSON: GeoJSON.FeatureCollection = {
+        type: 'FeatureCollection',
+        features: incidents.map((inc) => ({
+          type: 'Feature' as const,
+          id: inc.id,
+          properties: {
+            id: inc.id,
+            name: inc.name,
+            severity: inc.severity,
+            confidence: inc.confidence,
+            area_km2: inc.area_km2,
+            isActive: inc.id === activeIncidentId,
+          },
+          geometry: {
+            type: 'Point' as const,
+            coordinates: [inc.coordinates.lng, inc.coordinates.lat] as [number, number],
+          },
+        })),
+      };
+
+      if (!map.getSource('incident-centroids-source')) {
+        map.addSource('incident-centroids-source', {
+          type: 'geojson',
+          data: incidentPointsGeoJSON,
+        });
+
+        // Outer halo / glow ring
+        map.addLayer({
+          id: 'incident-centroids-halo',
+          type: 'circle',
+          source: 'incident-centroids-source',
+          paint: {
+            'circle-color': [
+              'case',
+              ['==', ['get', 'severity'], 'HIGH'],
+              '#DC2626',
+              ['==', ['get', 'severity'], 'MEDIUM'],
+              '#D97706',
+              '#16A34A',
+            ],
+            'circle-radius': ['case', ['get', 'isActive'], 14, 8],
+            'circle-opacity': ['case', ['get', 'isActive'], 0.45, 0.25],
+            'circle-stroke-width': ['case', ['get', 'isActive'], 2, 1],
+            'circle-stroke-color': ['case', ['get', 'isActive'], '#17324D', '#FFFFFF'],
+          },
+        });
+
+        // Inner solid core with crisp white border
+        map.addLayer({
+          id: 'incident-centroids-core',
+          type: 'circle',
+          source: 'incident-centroids-source',
+          paint: {
+            'circle-color': [
+              'case',
+              ['==', ['get', 'severity'], 'HIGH'],
+              '#B42318',
+              ['==', ['get', 'severity'], 'MEDIUM'],
+              '#C47A00',
+              '#15803D',
+            ],
+            'circle-radius': ['case', ['get', 'isActive'], 6, 4.5],
+            'circle-stroke-width': 1.5,
+            'circle-stroke-color': '#FFFFFF',
+          },
+        });
+
+        map.on('click', 'incident-centroids-core', (e) => {
+          if (e.features && e.features[0]) {
+            const incId = e.features[0].properties?.id;
+            if (incId) {
+              setActiveIncidentId(incId);
+            }
+          }
+        });
+        map.on('mouseenter', 'incident-centroids-core', () => {
+          map.getCanvas().style.cursor = 'pointer';
+        });
+        map.on('mouseleave', 'incident-centroids-core', () => {
+          map.getCanvas().style.cursor = '';
+        });
+      } else {
+        const src = map.getSource('incident-centroids-source') as GeoJSONSource;
+        src.setData(incidentPointsGeoJSON);
+      }
     },
     [incidents, activeIncidentId, activeIncident, selectedCandidateId, selectedForecastHorizon]
   );
@@ -884,7 +973,7 @@ export const MapView: React.FC = () => {
     toggle('all-ais-dots', layers.all_ais_traffic);
   }, [mapLoaded, setupMapLayers, layers]);
 
-  // Render Custom HTML Markers for Incident Labels, Clusters & Vessels (Government GIS Style)
+  // Render Custom HTML Markers for Incident Labels & Vessels (Government GIS Style)
   const updateIncidentMarkers = useCallback(() => {
     const map = mapRef.current;
     if (!map || !mapLoaded) return;
@@ -892,107 +981,65 @@ export const MapView: React.FC = () => {
     activeMarkersRef.current.forEach((m) => m.remove());
     activeMarkersRef.current = [];
 
-    // 1. Incident centroid markers & low-zoom clusters
+    // 1. Individual Incident GIS Badges (All incidents visible on Common Map)
     if (layers.slick_confidence_badges) {
-      const zoom = map.getZoom();
-
-      // Screen-space proximity clustering for overview zoom levels
-      const clusters: { items: typeof incidents; center: [number, number] }[] = [];
-      const visited = new Set<string>();
-
       incidents.forEach((inc) => {
-        if (visited.has(inc.id)) return;
-        const p1 = map.project([inc.coordinates.lng, inc.coordinates.lat]);
-        const group = [inc];
-        visited.add(inc.id);
+        const isSelected = inc.id === activeIncidentId;
+        const confPercent = Math.round(inc.confidence * 100);
+        const dotColor =
+          inc.severity === 'HIGH' ? '#B42318' : inc.severity === 'MEDIUM' ? '#C47A00' : '#16A34A';
 
-        // Cluster incidents that overlap or are closely grouped on screen at overview zoom
-        if (zoom < 6.0) {
-          incidents.forEach((other) => {
-            if (visited.has(other.id)) return;
-            const p2 = map.project([other.coordinates.lng, other.coordinates.lat]);
-            const dist = Math.hypot(p1.x - p2.x, p1.y - p2.y);
-            if (dist < 48) {
-              group.push(other);
-              visited.add(other.id);
-            }
-          });
-        }
+        const el = document.createElement('div');
+        el.className = 'cursor-pointer select-none';
 
-        const avgLng = group.reduce((sum, g) => sum + g.coordinates.lng, 0) / group.length;
-        const avgLat = group.reduce((sum, g) => sum + g.coordinates.lat, 0) / group.length;
-        clusters.push({ items: group, center: [avgLng, avgLat] });
-      });
-
-      clusters.forEach((cluster) => {
-        if (cluster.items.length > 1) {
-          // Clustered incident marker
-          const el = document.createElement('div');
-          el.className = 'cursor-pointer select-none';
-          const hasSelected = cluster.items.some((g) => g.id === activeIncidentId);
-
-          el.innerHTML = `
-            <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full ${
-              hasSelected
-                ? 'bg-[#17324D] text-white ring-2 ring-[#0284C7] shadow-md'
-                : 'bg-white/95 border border-[#D1D5DB] text-slate-800 shadow-xs hover:border-slate-400'
-            } text-[11px] font-sans font-bold transition">
-              <span class="inline-block h-2 w-2 rounded-full bg-[#B42318] shrink-0"></span>
-              <span class="font-mono">${cluster.items.length} incidents</span>
+        el.innerHTML = `
+          <div class="px-2 py-0.5 rounded border ${
+            isSelected
+              ? 'bg-[#17324D] border-[#17324D] text-white font-bold shadow-md ring-2 ring-[#0284C7]'
+              : 'bg-white/95 border-[#D1D5DB] text-gray-800 shadow-2xs hover:border-gray-400'
+          } text-[10px] font-sans transition">
+            <div class="flex items-center gap-1.5">
+              <span class="inline-block h-2 w-2 rounded-full shrink-0" style="background-color: ${dotColor}"></span>
+              <span class="font-mono font-bold">${inc.id}</span>
             </div>
-          `;
+            <div class="text-[9px] ${
+              isSelected ? 'text-blue-200' : 'text-gray-500'
+            } font-mono pl-3.5 leading-tight">${confPercent}% conf · ${inc.area_km2.toFixed(1)} km²</div>
+          </div>
+        `;
 
-          el.onclick = (e) => {
+        let startX = 0;
+        let startY = 0;
+        let isDragging = false;
+
+        el.addEventListener('pointerdown', (e) => {
+          startX = e.clientX;
+          startY = e.clientY;
+          isDragging = false;
+        });
+
+        el.addEventListener('pointermove', (e) => {
+          if (Math.hypot(e.clientX - startX, e.clientY - startY) > 5) {
+            isDragging = true;
+          }
+        });
+
+        el.addEventListener('click', (e) => {
+          if (isDragging) {
+            e.preventDefault();
             e.stopPropagation();
-            map.flyTo({
-              center: cluster.center,
-              zoom: Math.min(map.getZoom() + 2.5, 9),
-              duration: 700,
-            });
-          };
+            return;
+          }
+          e.stopPropagation();
+          // Select incident ONLY — never force the camera to jump on click
+          setActiveIncidentId(inc.id);
+        });
 
-          const marker = new maplibregl.Marker({ element: el, anchor: 'center' })
-            .setLngLat(cluster.center)
-            .addTo(map);
+        const marker = new maplibregl.Marker({ element: el, anchor: 'bottom' })
+          .setLngLat([inc.coordinates.lng, inc.coordinates.lat])
+          .addTo(map);
 
-          activeMarkersRef.current.push(marker);
-        } else {
-          // Individual subtle GIS marker
-          const inc = cluster.items[0];
-          const isSelected = inc.id === activeIncidentId;
-          const confPercent = Math.round(inc.confidence * 100);
-          const dotColor =
-            inc.severity === 'HIGH' ? '#B42318' : inc.severity === 'MEDIUM' ? '#C47A00' : '#16A34A';
-
-          const el = document.createElement('div');
-          el.className = 'cursor-pointer select-none';
-
-          el.innerHTML = `
-            <div class="px-2 py-0.5 rounded border ${
-              isSelected
-                ? 'bg-white border-[#17324D] text-[#17324D] font-bold shadow-md ring-2 ring-[#17324D]/25'
-                : 'bg-white/95 border-[#D1D5DB] text-gray-800 shadow-2xs hover:border-gray-400'
-            } text-[10px] font-sans transition">
-              <div class="flex items-center gap-1.5">
-                <span class="inline-block h-2 w-2 rounded-full shrink-0" style="background-color: ${dotColor}"></span>
-                <span class="font-mono font-bold">${inc.id}</span>
-              </div>
-              <div class="text-[9px] text-gray-500 font-mono pl-3.5 leading-tight">${confPercent}% conf · ${inc.area_km2.toFixed(1)} km²</div>
-            </div>
-          `;
-
-          el.onclick = (e) => {
-            e.stopPropagation();
-            // CRITICAL: Simply select the incident, DO NOT zoom/fly map!
-            setActiveIncidentId(inc.id);
-          };
-
-          const marker = new maplibregl.Marker({ element: el, anchor: 'bottom' })
-            .setLngLat([inc.coordinates.lng, inc.coordinates.lat])
-            .addTo(map);
-
-          activeMarkersRef.current.push(marker);
-        }
+        activeMarkersRef.current.push(marker);
       });
     }
 
@@ -1020,10 +1067,31 @@ export const MapView: React.FC = () => {
           </div>
         `;
 
-        el.onclick = (e) => {
+        let startX = 0;
+        let startY = 0;
+        let isDragging = false;
+
+        el.addEventListener('pointerdown', (e) => {
+          startX = e.clientX;
+          startY = e.clientY;
+          isDragging = false;
+        });
+
+        el.addEventListener('pointermove', (e) => {
+          if (Math.hypot(e.clientX - startX, e.clientY - startY) > 5) {
+            isDragging = true;
+          }
+        });
+
+        el.addEventListener('click', (e) => {
+          if (isDragging) {
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+          }
           e.stopPropagation();
           setSelectedCandidateId(cand.id);
-        };
+        });
 
         const marker = new maplibregl.Marker({ element: el, anchor: 'center' })
           .setLngLat([cand.current_position.lng, cand.current_position.lat])
@@ -1069,19 +1137,14 @@ export const MapView: React.FC = () => {
     setSelectedCandidateId,
   ]);
 
-  // Sync HTML markers with map and camera moves
+  // Sync HTML markers with map and incident updates (GPU transform natively updates positions during pan/zoom)
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !mapLoaded) return;
 
     updateIncidentMarkers();
 
-    map.on('zoomend', updateIncidentMarkers);
-    map.on('moveend', updateIncidentMarkers);
-
     return () => {
-      map.off('zoomend', updateIncidentMarkers);
-      map.off('moveend', updateIncidentMarkers);
       activeMarkersRef.current.forEach((m) => m.remove());
       activeMarkersRef.current = [];
     };
