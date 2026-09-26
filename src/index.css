@@ -1,10 +1,15 @@
 @import "tailwindcss";
 @import "maplibre-gl/dist/maplibre-gl.css";
 
+@theme {
+  --font-sans: "Noto Sans", Arial, sans-serif;
+  --font-mono: "Noto Sans Mono", "Roboto Mono", monospace;
+}
+
 @layer base {
   :root {
-    --font-mono: 'Roboto Mono', 'SFMono-Regular', Consolas, Menlo, monospace;
-    --font-sans: 'Source Sans 3', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: "Noto Sans Mono", "Roboto Mono", monospace;
+    --font-sans: "Noto Sans", Arial, sans-serif;
   }
 
   body {
@@ -74,6 +79,7 @@
 .gis-table {
   width: 100%;
   border-collapse: collapse;
+  font-family: var(--font-sans);
 }
 
 .gis-table th {

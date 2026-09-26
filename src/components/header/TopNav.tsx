@@ -7,7 +7,6 @@ import {
   PanelLeftOpen,
   PanelRightClose,
   PanelRightOpen,
-  HelpCircle,
 } from 'lucide-react';
 import { usePoseidonStore } from '../../store/usePoseidonStore';
 import { AppMode } from '../../types';
@@ -40,23 +39,23 @@ export const TopNav: React.FC = () => {
         <button
           onClick={toggleLeftPanel}
           title={leftPanelOpen ? 'Collapse incident list' : 'Expand incident list'}
-          className="flex h-7 w-7 items-center justify-center rounded border border-[#2F4F70] bg-[#1C3D5E] text-slate-200 hover:bg-[#254F78] hover:text-white transition"
+          className="flex h-7 w-7 items-center justify-center rounded-sm border border-[#2F4F70] bg-[#1C3D5E] text-slate-200 hover:bg-[#254F78] hover:text-white transition"
         >
           {leftPanelOpen ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeftOpen className="h-4 w-4" />}
         </button>
 
         <div className="flex items-center gap-2.5">
-          {/* Institutional Maritime Emblem: Clean Flat Globe/Satellite */}
-          <div className="flex h-7 w-7 items-center justify-center rounded bg-[#102438] border border-[#2F4F70] text-[#93C5FD]">
+          {/* Institutional Maritime Emblem: Clean Flat Globe */}
+          <div className="flex h-7 w-7 items-center justify-center rounded-sm bg-[#102438] border border-[#2F4F70] text-[#93C5FD]">
             <Globe2 className="h-4 w-4" />
           </div>
 
           <div className="flex flex-col">
             <div className="flex items-baseline gap-2">
-              <span className="font-sans text-sm font-bold tracking-tight text-white">
+              <span className="font-sans text-base font-bold tracking-tight text-white">
                 POSEIDON
               </span>
-              <span className="text-[11px] text-slate-300 font-normal">
+              <span className="text-xs text-slate-300 font-normal">
                 Marine Oil Spill Monitoring System
               </span>
             </div>
@@ -65,17 +64,17 @@ export const TopNav: React.FC = () => {
       </div>
 
       {/* Center: Institutional Navigation Tabs */}
-      <nav className="flex items-center space-x-0.5">
+      <nav className="flex items-center space-x-1">
         {navModes.map((mode) => {
           const isActive = activeMode === mode.id;
           return (
             <button
               key={mode.id}
               onClick={() => setActiveMode(mode.id)}
-              className={`relative px-3.5 py-1.5 text-xs font-medium transition rounded-t-sm ${
+              className={`relative px-3.5 py-1.5 text-xs transition rounded-t-sm ${
                 isActive
                   ? 'bg-[#0F2538] text-white font-semibold border-b-2 border-white'
-                  : 'text-slate-200 hover:bg-[#1F4367] hover:text-white'
+                  : 'text-slate-200 hover:bg-[#1F4367] hover:text-white font-medium'
               }`}
             >
               {mode.label}
@@ -89,30 +88,29 @@ export const TopNav: React.FC = () => {
         {/* Run Demonstration Action Button */}
         <button
           onClick={startDemoInvestigation}
-          className={`flex items-center gap-1.5 rounded px-3 py-1 text-xs font-semibold transition border ${
+          className={`flex items-center gap-1.5 rounded-sm px-3 py-1 text-xs font-medium transition border ${
             demoInvestigation.isActive
-              ? 'bg-[#C47A00] border-[#995E00] text-white shadow-sm'
+              ? 'bg-[#C47A00] border-[#995E00] text-white'
               : 'bg-[#1769AA] border-[#13588F] text-white hover:bg-[#145C96]'
           }`}
-          style={{ borderRadius: '4px' }}
         >
           <Play className="h-3 w-3 fill-current" />
-          <span>{demoInvestigation.isActive ? 'Demonstration Active' : 'Run demonstration'}</span>
+          <span>{demoInvestigation.isActive ? 'Demonstration active' : 'Run demonstration'}</span>
         </button>
 
         {/* Operational Status Display */}
         <div
           onClick={() => setSystemStatusOpen(true)}
-          className="hidden md:flex items-center gap-3 rounded border border-[#2F4F70] bg-[#102438] px-2.5 py-1 text-[11px] cursor-pointer hover:bg-[#163350] transition"
+          className="hidden md:flex items-center gap-3 rounded-sm border border-[#2F4F70] bg-[#102438] px-2.5 py-1 text-[11px] cursor-pointer hover:bg-[#163350] transition"
           title="Click to view detailed system ingestion status"
         >
           <div className="flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-full bg-[#287D3C]"></span>
+            <span className="h-1.5 w-1.5 rounded-full bg-[#287D3C]"></span>
             <span className="text-slate-200">Satellite: Operational</span>
           </div>
           <span className="text-[#3E5F80]">|</span>
           <div className="flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-full bg-[#287D3C]"></span>
+            <span className="h-1.5 w-1.5 rounded-full bg-[#287D3C]"></span>
             <span className="text-slate-200">AIS: Operational</span>
           </div>
         </div>
@@ -121,7 +119,7 @@ export const TopNav: React.FC = () => {
         <button
           onClick={() => setSystemStatusOpen(true)}
           title="System pipeline status"
-          className="flex h-7 w-7 items-center justify-center rounded border border-[#2F4F70] bg-[#1C3D5E] text-slate-200 hover:text-white transition"
+          className="flex h-7 w-7 items-center justify-center rounded-sm border border-[#2F4F70] bg-[#1C3D5E] text-slate-200 hover:text-white transition"
         >
           <Activity className="h-3.5 w-3.5" />
         </button>
@@ -130,7 +128,7 @@ export const TopNav: React.FC = () => {
         <button
           onClick={toggleRightPanel}
           title={rightPanelOpen ? 'Collapse information panel' : 'Expand information panel'}
-          className="flex h-7 w-7 items-center justify-center rounded border border-[#2F4F70] bg-[#1C3D5E] text-slate-200 hover:bg-[#254F78] hover:text-white transition"
+          className="flex h-7 w-7 items-center justify-center rounded-sm border border-[#2F4F70] bg-[#1C3D5E] text-slate-200 hover:bg-[#254F78] hover:text-white transition"
         >
           {rightPanelOpen ? <PanelRightClose className="h-4 w-4" /> : <PanelRightOpen className="h-4 w-4" />}
         </button>

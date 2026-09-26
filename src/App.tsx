@@ -32,7 +32,7 @@ export const App: React.FC = () => {
   }, [setActiveIncidentId]);
 
   return (
-    <div className="flex h-screen w-screen flex-col overflow-hidden bg-[#070a0f] text-slate-100 font-sans">
+    <div className="flex h-screen w-screen flex-col overflow-hidden bg-[#F5F7F9] text-gray-900 font-sans">
       {/* 1. Compact NASA FIRMS-Style Top Navigation */}
       <TopNav />
 

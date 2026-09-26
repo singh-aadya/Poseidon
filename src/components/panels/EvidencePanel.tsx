@@ -6,7 +6,6 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import { usePoseidonStore } from '../../store/usePoseidonStore';
-import { formatUtcDateTime } from '../../utils/formatting';
 
 export const EvidencePanel: React.FC = () => {
   const {
@@ -34,25 +33,25 @@ export const EvidencePanel: React.FC = () => {
       : inc.sar_imagery.overlay_composite_url;
 
   return (
-    <div className="space-y-4 p-3.5 text-xs text-gray-800 bg-white">
+    <div className="p-4 space-y-4 text-xs text-gray-800 bg-white">
       {/* 1. Header */}
-      <div className="rounded border border-[#D1D5DB] bg-[#F8FAFC] p-3" style={{ borderRadius: '4px' }}>
-        <div className="flex items-center justify-between text-[11px] font-bold text-gray-700 uppercase tracking-wide">
+      <div className="border-b border-[#E5E7EB] pb-3.5 space-y-1">
+        <div className="flex items-center justify-between text-[11px] font-semibold text-gray-700">
           <div className="flex items-center gap-1.5 text-[#17324D]">
             <FileText className="h-3.5 w-3.5 text-[#1769AA]" />
             <span>Investigation evidence dossier</span>
           </div>
-          <span className="font-mono text-gray-600">{inc.id}</span>
+          <span className="font-mono text-gray-600 font-bold">{inc.id}</span>
         </div>
-        <p className="text-xs text-gray-600 mt-1">
+        <p className="text-[11px] text-gray-600 leading-relaxed">
           Forensic verification bundle combining Copernicus Sentinel-1 C-Band SAR backscatter dampening,
           automated segmentation, and historical AIS transit logs.
         </p>
       </div>
 
-      {/* 2. SATELLITE IMAGE COMPARISON (Section 28) */}
-      <div className="rounded border border-[#D1D5DB] bg-white p-3 space-y-2.5" style={{ borderRadius: '4px' }}>
-        <div className="flex items-center justify-between text-[11px] font-bold text-gray-700 uppercase tracking-wide">
+      {/* 2. SATELLITE IMAGE COMPARISON */}
+      <div className="border-b border-[#E5E7EB] pb-3.5 space-y-2">
+        <div className="flex items-center justify-between text-[11px] font-semibold text-gray-700">
           <div className="flex items-center gap-1.5">
             <Satellite className="h-3.5 w-3.5 text-[#1769AA]" />
             <span>Satellite imagery analysis</span>
@@ -60,18 +59,17 @@ export const EvidencePanel: React.FC = () => {
           <span className="text-gray-500 font-normal">{inc.satellite}</span>
         </div>
 
-        {/* View Mode Switcher (Standard GIS Buttons) */}
+        {/* View Mode Switcher */}
         <div className="grid grid-cols-4 gap-1">
           {(['before', 'after', 'mask', 'overlay'] as const).map((m) => (
             <button
               key={m}
               onClick={() => setSatelliteComparison({ mode: m })}
-              className={`rounded py-1 text-xs font-semibold capitalize transition border ${
+              className={`rounded-sm py-1 text-xs font-semibold capitalize transition border ${
                 mode === m
                   ? 'bg-[#1769AA] text-white border-[#1769AA]'
-                  : 'border-[#D1D5DB] bg-white text-gray-700 hover:bg-gray-50'
+                  : 'border-[#D1D5DB] bg-white text-gray-700 hover:bg-slate-50'
               }`}
-              style={{ borderRadius: '3px' }}
             >
               {m}
             </button>
@@ -79,7 +77,7 @@ export const EvidencePanel: React.FC = () => {
         </div>
 
         {/* Image Frame */}
-        <div className="relative overflow-hidden rounded border border-[#D1D5DB] bg-[#F8FAFC] aspect-video flex items-center justify-center" style={{ borderRadius: '4px' }}>
+        <div className="relative overflow-hidden rounded-sm border border-[#D1D5DB] bg-[#F8FAFC] aspect-video flex items-center justify-center">
           <img
             src={currentImageUrl}
             alt="Satellite analysis preview"
@@ -89,7 +87,7 @@ export const EvidencePanel: React.FC = () => {
             }}
           />
 
-          <div className="absolute top-2 left-2 rounded bg-white/90 border border-[#D1D5DB] px-1.5 py-0.5 text-[10px] font-sans font-medium text-gray-700 shadow-2xs">
+          <div className="absolute top-2 left-2 rounded-xs bg-white/90 border border-[#D1D5DB] px-1.5 py-0.5 text-[10px] font-sans font-medium text-gray-700 shadow-2xs">
             Layer: {mode.toUpperCase()}
           </div>
         </div>
@@ -98,7 +96,7 @@ export const EvidencePanel: React.FC = () => {
         <div className="space-y-1 pt-1 text-xs">
           <div className="flex justify-between text-gray-600">
             <span>Segmentation mask opacity</span>
-            <span className="font-semibold text-gray-800">{Math.round(maskOpacity * 100)}%</span>
+            <span className="font-semibold text-gray-800 font-mono">{Math.round(maskOpacity * 100)}%</span>
           </div>
           <input
             type="range"
@@ -109,14 +107,14 @@ export const EvidencePanel: React.FC = () => {
             onChange={(e) =>
               setSatelliteComparison({ maskOpacity: parseFloat(e.target.value) })
             }
-            className="w-full cursor-pointer h-1.5 bg-gray-200 rounded accent-[#1769AA]"
+            className="w-full cursor-pointer h-1.5 bg-gray-200 rounded-sm accent-[#1769AA]"
           />
         </div>
       </div>
 
-      {/* 3. TECHNICAL MODEL METRICS TABLE (Section 29) */}
-      <div className="rounded border border-[#D1D5DB] bg-white p-3 space-y-2" style={{ borderRadius: '4px' }}>
-        <div className="flex items-center justify-between text-[11px] font-bold text-gray-700 uppercase tracking-wide">
+      {/* 3. TECHNICAL MODEL METRICS TABLE */}
+      <div className="border-b border-[#E5E7EB] pb-3.5 space-y-2">
+        <div className="flex items-center justify-between text-[11px] font-semibold text-gray-700">
           <span>Model inference specifications</span>
           <span className="text-[#287D3C] font-semibold text-xs flex items-center gap-1">
             <CheckCircle2 className="h-3 w-3" />
@@ -142,23 +140,23 @@ export const EvidencePanel: React.FC = () => {
             </tr>
             <tr>
               <td className="py-1 px-2 text-gray-600">Detection confidence</td>
-              <td className="py-1 px-2 font-semibold text-right text-gray-900">{(inc.ml_metrics.detection_confidence * 100).toFixed(1)}%</td>
+              <td className="py-1 px-2 font-semibold text-right text-gray-900 font-mono">{(inc.ml_metrics.detection_confidence * 100).toFixed(1)}%</td>
             </tr>
             <tr>
               <td className="py-1 px-2 text-gray-600">Intersection over Union (IoU)</td>
-              <td className="py-1 px-2 font-semibold text-right text-gray-900">{inc.ml_metrics.iou_score.toFixed(3)}</td>
+              <td className="py-1 px-2 font-semibold text-right text-gray-900 font-mono">{inc.ml_metrics.iou_score.toFixed(3)}</td>
             </tr>
             <tr>
               <td className="py-1 px-2 text-gray-600">Dice coefficient</td>
-              <td className="py-1 px-2 font-medium text-right text-gray-900">{inc.ml_metrics.dice_coefficient.toFixed(3)}</td>
+              <td className="py-1 px-2 font-medium text-right text-gray-900 font-mono">{inc.ml_metrics.dice_coefficient.toFixed(3)}</td>
             </tr>
             <tr>
               <td className="py-1 px-2 text-gray-600">Look-alike probability</td>
-              <td className="py-1 px-2 font-medium text-right text-gray-900">{(inc.ml_metrics.look_alike_probability * 100).toFixed(1)}%</td>
+              <td className="py-1 px-2 font-medium text-right text-gray-900 font-mono">{(inc.ml_metrics.look_alike_probability * 100).toFixed(1)}%</td>
             </tr>
             <tr>
               <td className="py-1 px-2 text-gray-600">Spatial resolution</td>
-              <td className="py-1 px-2 font-medium text-right text-gray-900">10.0 m/pixel</td>
+              <td className="py-1 px-2 font-medium text-right text-gray-900 font-mono">10.0 m/pixel</td>
             </tr>
           </tbody>
         </table>
@@ -166,7 +164,7 @@ export const EvidencePanel: React.FC = () => {
 
       {/* 4. AIS & Metocean Corroboration Summary */}
       {selectedCandidate && (
-        <div className="rounded border border-[#D1D5DB] bg-[#F8FAFC] p-2.5 text-xs text-gray-700 space-y-1" style={{ borderRadius: '4px' }}>
+        <div className="py-2 px-2.5 rounded-sm bg-slate-50 border border-slate-200 text-xs text-gray-700 space-y-1">
           <div className="font-semibold text-gray-800">AIS passage corroboration</div>
           <p className="leading-relaxed">
             {selectedCandidate.vessel_name} transited within 1.2 km of reverse-drift origin point at 23:14 UTC.
@@ -179,8 +177,7 @@ export const EvidencePanel: React.FC = () => {
       <div className="pt-1">
         <button
           onClick={handlePrintDossier}
-          className="flex w-full items-center justify-center gap-2 rounded border border-[#1769AA] bg-[#1769AA] py-2 text-xs font-semibold text-white hover:bg-[#145C96] transition shadow-xs"
-          style={{ borderRadius: '4px' }}
+          className="flex w-full items-center justify-center gap-2 rounded-sm border border-[#1769AA] bg-[#1769AA] py-2 text-xs font-semibold text-white hover:bg-[#145C96] transition shadow-xs"
         >
           <Printer className="h-4 w-4" />
           <span>Export incident report (PDF)</span>

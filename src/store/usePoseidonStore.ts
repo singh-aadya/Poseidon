@@ -227,7 +227,7 @@ export const usePoseidonStore = create<PoseidonState>((set, get) => ({
   systemStatusOpen: false,
   vesselDetailModalOpen: false,
 
-  basemap: 'light-gis',
+  basemap: 'oceanographic',
   layers: DEFAULT_LAYERS,
 
   timeline: {
@@ -257,7 +257,7 @@ export const usePoseidonStore = create<PoseidonState>((set, get) => ({
     maskOpacity: 0.7,
   },
 
-  mapFlyTarget: { center: [-90.45, 27.85], zoom: 9.8, duration: 2000 },
+  mapFlyTarget: { center: [-90.45, 27.85], zoom: 10.4, duration: 1800 },
 
   setActiveIncidentId: (id: string) => {
     const inc = get().incidents.find((i) => i.id === id);
@@ -270,7 +270,7 @@ export const usePoseidonStore = create<PoseidonState>((set, get) => ({
       selectedCandidateId: firstCandidate,
       mapFlyTarget: {
         center: [inc.coordinates.lng, inc.coordinates.lat],
-        zoom: 9.6,
+        zoom: 10.4,
         duration: 1800,
       },
     });

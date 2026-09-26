@@ -3,42 +3,20 @@ import * as maplibregl from 'maplibre-gl';
 import type { Map as MapLibreMap, GeoJSONSource } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { usePoseidonStore } from '../../store/usePoseidonStore';
-import { BasemapStyle, Incident } from '../../types';
+import { BasemapStyle } from '../../types';
 import { VectorFlowCanvas } from './VectorFlowCanvas';
 import { MapControls } from './MapControls';
 import { LayerControl } from './LayerControl';
 import { MapLegend } from './MapLegend';
 
+// High-reliability public, open-access maritime and GIS basemaps (NOAA, GEBCO, Esri, OSM)
+// Zero API key required, zero watermarks, zero rate limit blocks.
 const MAP_STYLES: Record<BasemapStyle, any> = {
-  'light-gis': {
-    version: 8,
-    sources: {
-      'carto-light': {
-        type: 'raster',
-        tiles: [
-          'https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png',
-          'https://b.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png',
-          'https://c.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png',
-          'https://d.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png',
-        ],
-        tileSize: 256,
-        attribution: '&copy; CARTO &copy; OpenStreetMap contributors',
-      },
-    },
-    layers: [
-      {
-        id: 'carto-light-layer',
-        type: 'raster',
-        source: 'carto-light',
-        minzoom: 0,
-        maxzoom: 20,
-      },
-    ],
-  },
+  // 1. Maritime Oceanographic Basemap: GEBCO bathymetry, ocean depths, muted blue/gray water, NOAA contours
   'oceanographic': {
     version: 8,
     sources: {
-      'esri-ocean': {
+      'esri-ocean-base': {
         type: 'raster',
         tiles: [
           'https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}',
@@ -46,17 +24,73 @@ const MAP_STYLES: Record<BasemapStyle, any> = {
         tileSize: 256,
         attribution: '&copy; Esri, GEBCO, NOAA, National Geographic',
       },
+      'esri-ocean-ref': {
+        type: 'raster',
+        tiles: [
+          'https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Reference/MapServer/tile/{z}/{y}/{x}',
+        ],
+        tileSize: 256,
+        attribution: '&copy; Esri, GEBCO, NOAA',
+      },
     },
     layers: [
       {
-        id: 'esri-ocean-layer',
+        id: 'esri-ocean-base-layer',
         type: 'raster',
-        source: 'esri-ocean',
+        source: 'esri-ocean-base',
+        minzoom: 0,
+        maxzoom: 16,
+      },
+      {
+        id: 'esri-ocean-ref-layer',
+        type: 'raster',
+        source: 'esri-ocean-ref',
         minzoom: 0,
         maxzoom: 16,
       },
     ],
   },
+
+  // 2. Government Light Cartographic GIS Basemap: Neutral gray land, crisp boundaries, subtle water
+  'light-gis': {
+    version: 8,
+    sources: {
+      'esri-gray-base': {
+        type: 'raster',
+        tiles: [
+          'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+        ],
+        tileSize: 256,
+        attribution: '&copy; Esri, HERE, Garmin, &copy; OpenStreetMap contributors',
+      },
+      'esri-gray-ref': {
+        type: 'raster',
+        tiles: [
+          'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}',
+        ],
+        tileSize: 256,
+        attribution: '&copy; Esri',
+      },
+    },
+    layers: [
+      {
+        id: 'esri-gray-base-layer',
+        type: 'raster',
+        source: 'esri-gray-base',
+        minzoom: 0,
+        maxzoom: 16,
+      },
+      {
+        id: 'esri-gray-ref-layer',
+        type: 'raster',
+        source: 'esri-gray-ref',
+        minzoom: 0,
+        maxzoom: 16,
+      },
+    ],
+  },
+
+  // 3. Satellite True-Color Orbital Imagery
   'satellite': {
     version: 8,
     sources: {
@@ -68,6 +102,14 @@ const MAP_STYLES: Record<BasemapStyle, any> = {
         tileSize: 256,
         attribution: '&copy; Esri, Maxar, Earthstar Geographics',
       },
+      'esri-boundaries': {
+        type: 'raster',
+        tiles: [
+          'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
+        ],
+        tileSize: 256,
+        attribution: '&copy; Esri',
+      },
     },
     layers: [
       {
@@ -77,30 +119,51 @@ const MAP_STYLES: Record<BasemapStyle, any> = {
         minzoom: 0,
         maxzoom: 19,
       },
+      {
+        id: 'esri-boundaries-layer',
+        type: 'raster',
+        source: 'esri-boundaries',
+        minzoom: 0,
+        maxzoom: 19,
+      },
     ],
   },
+
+  // 4. Dark Oceanographic / High-Contrast SAR Analysis Mode
   'dark-matter': {
     version: 8,
     sources: {
-      'carto-dark': {
+      'esri-dark-base': {
         type: 'raster',
         tiles: [
-          'https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png',
-          'https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png',
-          'https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png',
-          'https://d.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png',
+          'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
         ],
         tileSize: 256,
-        attribution: '&copy; CARTO &copy; OpenStreetMap',
+        attribution: '&copy; Esri, HERE, Garmin, &copy; OpenStreetMap contributors',
+      },
+      'esri-dark-ref': {
+        type: 'raster',
+        tiles: [
+          'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}',
+        ],
+        tileSize: 256,
+        attribution: '&copy; Esri',
       },
     },
     layers: [
       {
-        id: 'carto-dark-layer',
+        id: 'esri-dark-base-layer',
         type: 'raster',
-        source: 'carto-dark',
+        source: 'esri-dark-base',
         minzoom: 0,
-        maxzoom: 20,
+        maxzoom: 16,
+      },
+      {
+        id: 'esri-dark-ref-layer',
+        type: 'raster',
+        source: 'esri-dark-ref',
+        minzoom: 0,
+        maxzoom: 16,
       },
     ],
   },
@@ -142,7 +205,8 @@ export const MapView: React.FC = () => {
     } catch {
       // fallback
     }
-    return { lng: -90.45, lat: 27.85, zoom: 9.6 };
+    // Regional scale centered around Mississippi Canyon / Gulf of Mexico
+    return { lng: -90.45, lat: 27.85, zoom: 10.4 };
   };
 
   // Initialize Map
@@ -153,7 +217,7 @@ export const MapView: React.FC = () => {
 
     const map = new maplibregl.Map({
       container: mapContainerRef.current,
-      style: MAP_STYLES[basemap] || MAP_STYLES['light-gis'],
+      style: MAP_STYLES[basemap] || MAP_STYLES['oceanographic'],
       center: [initial.lng, initial.lat],
       zoom: initial.zoom,
       pitch: 0,
@@ -187,7 +251,7 @@ export const MapView: React.FC = () => {
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !mapLoaded) return;
-    map.setStyle(MAP_STYLES[basemap] || MAP_STYLES['light-gis']);
+    map.setStyle(MAP_STYLES[basemap] || MAP_STYLES['oceanographic']);
     map.once('style.load', () => {
       setupMapLayers(map);
     });
@@ -223,7 +287,7 @@ export const MapView: React.FC = () => {
           data: slicksGeoJSON,
         });
 
-        // Fill layer: Restrained scientific colors (no neon glow)
+        // Fill layer: Semi-transparent orange/red slick polygon
         map.addLayer({
           id: 'slicks-fill',
           type: 'fill',
@@ -231,6 +295,8 @@ export const MapView: React.FC = () => {
           paint: {
             'fill-color': [
               'case',
+              ['get', 'isActive'],
+              '#DC2626', // Active slick: High visibility semi-transparent red/orange
               ['==', ['get', 'severity'], 'HIGH'],
               '#B42318',
               ['==', ['get', 'severity'], 'MEDIUM'],
@@ -240,13 +306,13 @@ export const MapView: React.FC = () => {
             'fill-opacity': [
               'case',
               ['get', 'isActive'],
-              0.4,
+              0.5,
               0.25,
             ],
           },
         });
 
-        // Boundary layer: Crisp thin border
+        // Boundary layer: Crisp thin red/orange boundary
         map.addLayer({
           id: 'slicks-outline',
           type: 'line',
@@ -255,7 +321,7 @@ export const MapView: React.FC = () => {
             'line-color': [
               'case',
               ['get', 'isActive'],
-              '#17324D', // Selected: Dark Navy / Dark Red border
+              '#991B1B', // Selected: Thin crisp deep red boundary
               ['==', ['get', 'severity'], 'HIGH'],
               '#B42318',
               ['==', ['get', 'severity'], 'MEDIUM'],
@@ -607,7 +673,7 @@ export const MapView: React.FC = () => {
     activeMarkersRef.current.forEach((m) => m.remove());
     activeMarkersRef.current = [];
 
-    // 1. Incident centroid markers
+    // 1. Incident centroid markers: Compact GIS labels (● PSDN-00142 \n 94% confidence)
     if (layers.slick_confidence_badges) {
       incidents.forEach((inc) => {
         const el = document.createElement('div');
@@ -619,14 +685,16 @@ export const MapView: React.FC = () => {
           inc.severity === 'HIGH' ? '#B42318' : inc.severity === 'MEDIUM' ? '#C47A00' : '#6B7280';
 
         el.innerHTML = `
-          <div class="flex items-center gap-1.5 px-2 py-0.5 rounded border ${
+          <div class="px-2 py-0.5 rounded border ${
             isSelected
-              ? 'bg-white border-[#17324D] text-[#17324D] font-bold shadow-sm ring-1 ring-[#17324D]'
-              : 'bg-white/95 border-[#D1D5DB] text-gray-700 shadow-2xs hover:border-gray-400'
-          } text-[11px] font-sans transition">
-            <span class="inline-block h-2 w-2 rounded-full shrink-0" style="background-color: ${dotColor}"></span>
-            <span class="font-mono text-[10px] font-semibold">${inc.id.replace('PSDN-2026-', '')}</span>
-            <span class="text-gray-500 font-mono text-[10px]">${confPercent}%</span>
+              ? 'bg-white border-[#17324D] text-[#17324D] font-bold shadow-md'
+              : 'bg-white/95 border-[#D1D5DB] text-gray-800 shadow-2xs hover:border-gray-400'
+          } text-[10px] font-sans transition">
+            <div class="flex items-center gap-1.5">
+              <span class="inline-block h-2 w-2 rounded-full shrink-0" style="background-color: ${dotColor}"></span>
+              <span class="font-mono font-bold">${inc.id}</span>
+            </div>
+            <div class="text-[9px] text-gray-500 font-mono pl-3.5 leading-tight">${confPercent}% confidence</div>
           </div>
         `;
 
@@ -635,7 +703,7 @@ export const MapView: React.FC = () => {
           setActiveIncidentId(inc.id);
         };
 
-        const marker = new maplibregl.Marker({ element: el, anchor: 'center' })
+        const marker = new maplibregl.Marker({ element: el, anchor: 'bottom' })
           .setLngLat([inc.coordinates.lng, inc.coordinates.lat])
           .addTo(map);
 
@@ -710,7 +778,7 @@ export const MapView: React.FC = () => {
   }, [mapFlyTarget, clearMapFlyTarget]);
 
   return (
-    <div className="relative h-full w-full overflow-hidden bg-[#E2E8F0]">
+    <div className="relative h-full w-full overflow-hidden bg-[#CCD7E0]">
       {/* MapLibre WebGL Canvas Container */}
       <div ref={mapContainerRef} className="h-full w-full" />
 
@@ -726,9 +794,9 @@ export const MapView: React.FC = () => {
       {/* Floating Symbology Legend */}
       <MapLegend />
 
-      {/* Institutional Data Attribution Banner (Section 27) */}
-      <div className="absolute right-3.5 bottom-10 z-10 pointer-events-none rounded border border-[#D1D5DB] bg-white/95 px-2.5 py-1 text-[11px] font-sans text-gray-600 shadow-xs">
-        <span className="font-semibold text-gray-700">Data sources:</span> Copernicus Sentinel-1 • Global AIS • NOAA / HYCOM • <span className="text-gray-500">Demonstration data</span>
+      {/* Institutional Data Attribution Banner */}
+      <div className="absolute right-3.5 bottom-2 z-10 pointer-events-none rounded border border-slate-300 bg-white/90 px-2 py-0.5 text-[10px] font-sans text-slate-600 shadow-2xs">
+        <span className="font-semibold text-slate-700">Data sources:</span> Copernicus Sentinel-1 · Global AIS · NOAA/HYCOM · <span className="text-slate-500">Demonstration data</span>
       </div>
     </div>
   );

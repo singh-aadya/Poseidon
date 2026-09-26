@@ -33,7 +33,7 @@ export const RightIntelligencePanel: React.FC = () => {
       {/* Top Header */}
       <div className="border-b border-[#E5E7EB] bg-[#F8FAFC] px-3.5 py-2.5">
         <div className="flex items-center justify-between">
-          <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">
+          <span className="text-[11px] font-semibold text-gray-500">
             Active incident details
           </span>
           <span
