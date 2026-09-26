@@ -23,10 +23,13 @@ export const DemoInvestigationModal: React.FC = () => {
   ) || DEMO_STEPS[0];
 
   return (
-    <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 w-full max-w-lg px-4 pointer-events-auto">
+    <div
+      style={{ pointerEvents: 'none' }}
+      className="absolute top-4 left-1/2 -translate-x-1/2 z-30 w-full max-w-lg px-4 pointer-events-none"
+    >
       <div
-        className="rounded border border-[#0F2538] bg-[#17324D] p-3.5 shadow-md text-white"
-        style={{ borderRadius: '4px' }}
+        className="rounded border border-[#0F2538] bg-[#17324D] p-3.5 shadow-md text-white pointer-events-auto"
+        style={{ borderRadius: '4px', pointerEvents: 'auto' }}
       >
         {/* Header with Step Numbers */}
         <div className="flex items-center justify-between pb-2 border-b border-[#2A4B6D]">

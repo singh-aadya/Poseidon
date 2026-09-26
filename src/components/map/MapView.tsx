@@ -230,6 +230,7 @@ export const MapView: React.FC = () => {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [mapInstance, setMapInstance] = useState<MapLibreMap | null>(null);
   const activeMarkersRef = useRef<maplibregl.Marker[]>([]);
 
   const {
@@ -246,6 +247,7 @@ export const MapView: React.FC = () => {
     getActiveIncident,
   } = usePoseidonStore();
 
+  const prevBasemapRef = useRef(basemap);
   const activeIncident = getActiveIncident();
 
   const getInitialCoordinates = () => {
@@ -280,27 +282,49 @@ export const MapView: React.FC = () => {
       pitch: 0,
       bearing: 0,
       attributionControl: false,
+      interactive: true,
+      cooperativeGestures: false,
+      scrollZoom: true,
+      boxZoom: true,
+      dragRotate: true,
+      dragPan: true,
+      keyboard: true,
+      doubleClickZoom: true,
+      touchZoomRotate: true,
+      touchPitch: true,
     });
 
     map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right');
 
     map.on('load', () => {
       mapRef.current = map;
+      setMapInstance(map);
       setMapLoaded(true);
+
+      // Ensure all standard interactions are enabled
+      map.scrollZoom.enable();
+      map.dragPan.enable();
+      map.doubleClickZoom.enable();
+      map.touchZoomRotate.enable();
+      map.keyboard.enable();
+      map.boxZoom.enable();
+
       map.resize();
     });
 
-    // Update URL hash on camera move
+    // Update URL hash on camera move WITHOUT triggering hashchange event
     map.on('moveend', () => {
       const center = map.getCenter();
       const zoom = map.getZoom();
       const currentActiveId = usePoseidonStore.getState().activeIncidentId;
-      window.location.hash = `/map/@${center.lng.toFixed(2)},${center.lat.toFixed(2)},${zoom.toFixed(1)}z;incident=${currentActiveId}`;
+      const newHash = `#/map/@${center.lng.toFixed(2)},${center.lat.toFixed(2)},${zoom.toFixed(1)}z;incident=${currentActiveId}`;
+      window.history.replaceState(null, '', newHash);
     });
 
     return () => {
       map.remove();
       mapRef.current = null;
+      setMapInstance(null);
     };
   }, []);
 
@@ -308,6 +332,9 @@ export const MapView: React.FC = () => {
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !mapLoaded) return;
+    if (prevBasemapRef.current === basemap) return;
+    prevBasemapRef.current = basemap;
+
     map.setStyle(MAP_STYLES[basemap] || MAP_STYLES['oceanographic']);
     map.once('style.load', () => {
       setupMapLayers(map);
@@ -1017,16 +1044,16 @@ export const MapView: React.FC = () => {
   return (
     <div className="relative h-full w-full overflow-hidden bg-[#CCD7E0]">
       {/* MapLibre WebGL Canvas Container */}
-      <div ref={mapContainerRef} className="h-full w-full" />
+      <div ref={mapContainerRef} className="h-full w-full outline-none" tabIndex={0} />
 
       {/* Subtle Vector Flow Canvas (animated current and wind streamlines) */}
-      <VectorFlowCanvas map={mapRef.current} />
+      <VectorFlowCanvas map={mapInstance || mapRef.current} />
 
       {/* Floating Conventional GIS Layer Switcher & Map Mode HUD */}
       <MapIntelligenceBar />
 
       {/* Floating Vertical GIS Map Controls (Right Side) */}
-      <MapControls map={mapRef.current} />
+      <MapControls map={mapInstance || mapRef.current} />
 
       {/* Floating Symbology Legend */}
       <MapLegend />

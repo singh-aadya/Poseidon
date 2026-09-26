@@ -354,6 +354,7 @@ export const usePoseidonStore = create<PoseidonState>((set, get) => ({
   mapFlyTarget: { center: [-90.45, 27.85], zoom: 10.4, duration: 1800 },
 
   setActiveIncidentId: (id: string) => {
+    if (get().activeIncidentId === id) return;
     const inc = get().incidents.find((i) => i.id === id);
     if (!inc) return;
 

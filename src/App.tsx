@@ -27,7 +27,10 @@ export const App: React.FC = () => {
       const hash = window.location.hash;
       const incidentMatch = hash.match(/incident=([A-Za-z0-9_-]+)/);
       if (incidentMatch && incidentMatch[1]) {
-        setActiveIncidentId(incidentMatch[1]);
+        const currentActiveId = usePoseidonStore.getState().activeIncidentId;
+        if (incidentMatch[1] !== currentActiveId) {
+          setActiveIncidentId(incidentMatch[1]);
+        }
       }
     };
 

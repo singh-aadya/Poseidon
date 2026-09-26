@@ -148,6 +148,7 @@ export const VectorFlowCanvas: React.FC<VectorFlowCanvasProps> = ({ map }) => {
   return (
     <canvas
       ref={canvasRef}
+      style={{ pointerEvents: 'none' }}
       className="absolute inset-0 pointer-events-none z-10 w-full h-full"
     />
   );
