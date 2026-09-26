@@ -229,6 +229,33 @@ const MAP_STYLES: Record<BasemapStyle, any> = {
   },
 };
 
+function parseInitialHash(): { center: [number, number]; zoom: number; incidentId: string | null } {
+  try {
+    const hash = window.location.hash;
+    const coordMatch = hash.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*),(\d+\.?\d*)z/);
+    const incidentMatch = hash.match(/incident=([A-Za-z0-9_-]+)/);
+
+    let center: [number, number] = [15.0, 25.0];
+    let zoom = 2.5;
+
+    if (coordMatch) {
+      const lng = parseFloat(coordMatch[1]);
+      const lat = parseFloat(coordMatch[2]);
+      const z = parseFloat(coordMatch[3]);
+      if (!isNaN(lng) && !isNaN(lat) && !isNaN(z) && Math.abs(lat) <= 85) {
+        center = [lng, lat];
+        zoom = Math.min(Math.max(z, 1.5), 18);
+      }
+    }
+
+    const incidentId = incidentMatch ? incidentMatch[1] : null;
+
+    return { center, zoom, incidentId };
+  } catch {
+    return { center: [15.0, 25.0], zoom: 2.5, incidentId: null };
+  }
+}
+
 export const MapView: React.FC = () => {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
@@ -257,11 +284,21 @@ export const MapView: React.FC = () => {
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
 
+    const initial = parseInitialHash();
+
+    // If an incident ID is specified in URL hash, sync store on load
+    if (initial.incidentId) {
+      const store = usePoseidonStore.getState();
+      if (store.incidents.some((i) => i.id === initial.incidentId)) {
+        store.setActiveIncidentId(initial.incidentId);
+      }
+    }
+
     const map = new maplibregl.Map({
       container: mapContainerRef.current,
       style: MAP_STYLES[basemap] || MAP_STYLES['oceanographic'],
-      center: [15.0, 25.0],
-      zoom: 2.5,
+      center: initial.center,
+      zoom: initial.zoom,
       minZoom: 1.5,
       maxZoom: 18,
       pitch: 0,
@@ -285,6 +322,7 @@ export const MapView: React.FC = () => {
     map.on('load', () => {
       mapRef.current = map;
       (window as any).__map = map;
+      (window as any).__poseidonStore = usePoseidonStore;
       setMapInstance(map);
       setMapLoaded(true);
 
@@ -299,6 +337,18 @@ export const MapView: React.FC = () => {
       // Configure smooth zooming rate for mouse wheel & trackpad
       map.scrollZoom.setWheelZoomRate(1 / 300);
       map.scrollZoom.setZoomRate(1 / 100);
+
+      // Update URL hash on camera move WITHOUT triggering hashchange event
+      const updateUrlHash = () => {
+        const center = map.getCenter();
+        const zoom = map.getZoom();
+        const currentActiveId = usePoseidonStore.getState().activeIncidentId;
+        const newHash = `#/map/@${center.lng.toFixed(2)},${center.lat.toFixed(2)},${zoom.toFixed(1)}z;incident=${currentActiveId}`;
+        window.history.replaceState(null, '', window.location.pathname + newHash);
+      };
+
+      map.on('moveend', updateUrlHash);
+      updateUrlHash();
 
       map.resize();
     });
@@ -1149,6 +1199,16 @@ export const MapView: React.FC = () => {
       activeMarkersRef.current = [];
     };
   }, [updateIncidentMarkers, mapLoaded]);
+
+  // Sync URL hash when activeIncidentId changes
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapLoaded) return;
+    const center = map.getCenter();
+    const zoom = map.getZoom();
+    const newHash = `#/map/@${center.lng.toFixed(2)},${center.lat.toFixed(2)},${zoom.toFixed(1)}z;incident=${activeIncidentId}`;
+    window.history.replaceState(null, '', window.location.pathname + newHash);
+  }, [activeIncidentId, mapLoaded]);
 
   // Handle programmatic flyTo / fitBounds camera targets
   useEffect(() => {
