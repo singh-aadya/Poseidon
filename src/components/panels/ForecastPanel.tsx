@@ -109,6 +109,53 @@ export const ForecastPanel: React.FC = () => {
               {currentForecast.closest_shoreline_km} km
             </span>
           </div>
+
+          {/* Operational Forecast Progression Sequence Table */}
+          <div className="pt-2 space-y-1.5">
+            <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+              Ensemble Progression Sequence
+            </div>
+            <table className="gis-table text-[11px] w-full">
+              <thead>
+                <tr>
+                  <th className="py-1 px-1.5 text-left">Horizon</th>
+                  <th className="py-1 px-1.5 text-left">Projected Center</th>
+                  <th className="py-1 px-1.5 text-right">Coast Dist</th>
+                  <th className="py-1 px-1.5 text-right">Risk</th>
+                </tr>
+              </thead>
+              <tbody>
+                {horizons.map((h) => {
+                  const fc = inc.forecasts[h];
+                  const isSel = selectedForecastHorizon === h;
+                  return (
+                    <tr
+                      key={h}
+                      onClick={() => setSelectedForecastHorizon(h)}
+                      className={`cursor-pointer hover:bg-slate-50 transition ${isSel ? 'bg-blue-50/80 font-semibold' : ''}`}
+                    >
+                      <td className="py-1 px-1.5 font-bold text-slate-800">+{h}H</td>
+                      <td className="py-1 px-1.5 font-mono text-slate-600">{formatCoordinates(fc.predicted_center, 2)}</td>
+                      <td className="py-1 px-1.5 text-right font-mono text-slate-800">{fc.closest_shoreline_km} km</td>
+                      <td className="py-1 px-1.5 text-right">
+                        <span
+                          className={`text-[9px] font-bold px-1 py-0.2 rounded border ${
+                            fc.shoreline_impact_risk === 'HIGH'
+                              ? 'text-red-700 bg-red-50 border-red-200'
+                              : fc.shoreline_impact_risk === 'MODERATE'
+                              ? 'text-amber-700 bg-amber-50 border-amber-200'
+                              : 'text-emerald-700 bg-emerald-50 border-emerald-200'
+                          }`}
+                        >
+                          {fc.shoreline_impact_risk}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 

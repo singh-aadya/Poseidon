@@ -7,6 +7,10 @@ import {
   PanelLeftOpen,
   PanelRightClose,
   PanelRightOpen,
+  Bell,
+  Bot,
+  GitCompare,
+  History,
 } from 'lucide-react';
 import { usePoseidonStore } from '../../store/usePoseidonStore';
 import { AppMode } from '../../types';
@@ -22,7 +26,17 @@ export const TopNav: React.FC = () => {
     startDemoInvestigation,
     demoInvestigation,
     setSystemStatusOpen,
+    notifications,
+    toggleNotificationDrawer,
+    toggleCopilot,
+    isReplayMode,
+    toggleReplayMode,
+    incidents,
+    activeIncidentId,
+    setComparedIncidentIds,
   } = usePoseidonStore();
+
+  const unreadAlerts = notifications.filter((n) => !n.read).length;
 
   const navModes: { id: AppMode; label: string }[] = [
     { id: 'overview', label: 'Overview' },
@@ -84,34 +98,86 @@ export const TopNav: React.FC = () => {
       </nav>
 
       {/* Right: Operational Telemetry Status, Demo Trigger, Panel Toggle */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2">
+        {/* Historical Replay Mode Toggle */}
+        <button
+          onClick={toggleReplayMode}
+          title={isReplayMode ? 'Return to live real-time ingestion mode' : 'Switch to historical incident replay'}
+          className={`flex items-center gap-1 rounded-sm px-2 py-1 text-xs font-semibold transition border ${
+            isReplayMode
+              ? 'bg-amber-600 border-amber-500 text-white shadow-xs'
+              : 'border-[#2F4F70] bg-[#102438] text-slate-300 hover:text-white hover:bg-[#163350]'
+          }`}
+        >
+          <History className="h-3 w-3" />
+          <span className="hidden xl:inline">{isReplayMode ? 'Replay' : 'Live'}</span>
+        </button>
+
+        {/* Compare Incidents Modal Trigger */}
+        <button
+          onClick={() => {
+            const other = incidents.find((i) => i.id !== activeIncidentId) || incidents[0];
+            setComparedIncidentIds([activeIncidentId, other.id]);
+          }}
+          title="Compare incidents side-by-side"
+          className="flex items-center gap-1 rounded-sm border border-[#2F4F70] bg-[#102438] px-2 py-1 text-xs font-semibold text-slate-300 hover:text-white hover:bg-[#163350] transition"
+        >
+          <GitCompare className="h-3 w-3" />
+          <span className="hidden xl:inline">Compare</span>
+        </button>
+
+        {/* Alerts Center Trigger */}
+        <button
+          onClick={toggleNotificationDrawer}
+          title="System alerts & telemetry advisories"
+          className="relative flex items-center gap-1.5 rounded-sm border border-[#2F4F70] bg-[#102438] px-2 py-1 text-xs font-semibold text-slate-300 hover:text-white hover:bg-[#163350] transition"
+        >
+          <Bell className="h-3.5 w-3.5" />
+          <span className="hidden lg:inline">Alerts</span>
+          {unreadAlerts > 0 && (
+            <span className="rounded-full bg-red-600 px-1 py-0.2 font-mono text-[9px] font-bold text-white leading-none">
+              0{unreadAlerts}
+            </span>
+          )}
+        </button>
+
+        {/* Maritime Intelligence Copilot Trigger */}
+        <button
+          onClick={toggleCopilot}
+          title="POSEIDON Maritime Intelligence Copilot"
+          className="flex items-center gap-1 rounded-sm border border-cyan-600 bg-cyan-900/90 px-2 py-1 text-xs font-semibold text-cyan-200 hover:bg-cyan-800 hover:text-white transition shadow-2xs"
+        >
+          <Bot className="h-3.5 w-3.5 text-cyan-300" />
+          <span className="hidden sm:inline">Copilot</span>
+        </button>
+
         {/* Run Demonstration Action Button */}
         <button
           onClick={startDemoInvestigation}
-          className={`flex items-center gap-1.5 rounded-sm px-3 py-1 text-xs font-medium transition border ${
+          className={`flex items-center gap-1 rounded-sm px-2.5 py-1 text-xs font-medium transition border ${
             demoInvestigation.isActive
               ? 'bg-[#C47A00] border-[#995E00] text-white'
               : 'bg-[#1769AA] border-[#13588F] text-white hover:bg-[#145C96]'
           }`}
         >
           <Play className="h-3 w-3 fill-current" />
-          <span>{demoInvestigation.isActive ? 'Demonstration active' : 'Run demonstration'}</span>
+          <span className="hidden md:inline">{demoInvestigation.isActive ? 'Demo active' : 'Run demo'}</span>
         </button>
 
         {/* Operational Status Display */}
         <div
           onClick={() => setSystemStatusOpen(true)}
-          className="hidden md:flex items-center gap-3 rounded-sm border border-[#2F4F70] bg-[#102438] px-2.5 py-1 text-[11px] cursor-pointer hover:bg-[#163350] transition"
+          className="hidden 2xl:flex items-center gap-2.5 rounded-sm border border-[#2F4F70] bg-[#102438] px-2 py-1 text-[11px] cursor-pointer hover:bg-[#163350] transition"
           title="Click to view detailed system ingestion status"
         >
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1">
             <span className="h-1.5 w-1.5 rounded-full bg-[#287D3C]"></span>
-            <span className="text-slate-200">Satellite: Operational</span>
+            <span className="text-slate-200">Satellite</span>
           </div>
           <span className="text-[#3E5F80]">|</span>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1">
             <span className="h-1.5 w-1.5 rounded-full bg-[#287D3C]"></span>
-            <span className="text-slate-200">AIS: Operational</span>
+            <span className="text-slate-200">AIS</span>
           </div>
         </div>
 

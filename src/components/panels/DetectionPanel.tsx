@@ -9,7 +9,12 @@ import { usePoseidonStore } from '../../store/usePoseidonStore';
 import { formatUtcDateTime, formatCoordinates } from '../../utils/formatting';
 
 export const DetectionPanel: React.FC = () => {
-  const { getActiveIncident, setActiveMode } = usePoseidonStore();
+  const {
+    getActiveIncident,
+    setActiveMode,
+    setSatelliteComparison,
+    setMapIntelligenceMode,
+  } = usePoseidonStore();
   const inc = getActiveIncident();
 
   const confPercent = Math.round(inc.confidence * 100);
@@ -150,6 +155,58 @@ export const DetectionPanel: React.FC = () => {
             </tr>
           </tbody>
         </table>
+
+        {/* 3-Step Satellite Verification Workflow */}
+        <div className="pt-2">
+          <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+            3-Step Satellite Verification
+          </div>
+          <div className="grid grid-cols-3 gap-1">
+            <button
+              onClick={() => {
+                setSatelliteComparison({ mode: 'after' });
+                setMapIntelligenceMode('satellite');
+              }}
+              className="rounded-xs border border-slate-300 bg-white p-1 text-center hover:bg-slate-50 transition"
+            >
+              <div className="font-bold text-[10px] text-slate-800">1. Raw SAR</div>
+              <div className="text-[9px] text-slate-500 font-mono">-24.8 dB</div>
+            </button>
+            <button
+              onClick={() => {
+                setSatelliteComparison({ mode: 'mask' });
+                setMapIntelligenceMode('satellite');
+              }}
+              className="rounded-xs border border-slate-300 bg-white p-1 text-center hover:bg-slate-50 transition"
+            >
+              <div className="font-bold text-[10px] text-slate-800">2. Mask</div>
+              <div className="text-[9px] text-slate-500 font-mono">IoU 0.912</div>
+            </button>
+            <button
+              onClick={() => {
+                setSatelliteComparison({ mode: 'overlay' });
+                setMapIntelligenceMode('operational');
+              }}
+              className="rounded-xs border border-slate-300 bg-white p-1 text-center hover:bg-slate-50 transition"
+            >
+              <div className="font-bold text-[10px] text-slate-800">3. Slick</div>
+              <div className="text-[9px] text-slate-500 font-mono">18.6 km²</div>
+            </button>
+          </div>
+        </div>
+
+        {/* SAR Sensor Physics Parameters */}
+        <div className="rounded-sm border border-slate-200 bg-slate-50 p-2 space-y-1 text-[11px] mt-2">
+          <div className="font-semibold text-slate-800 text-[10px] uppercase tracking-wider border-b border-slate-200 pb-0.5">
+            SAR Sensor Physics & Calibration
+          </div>
+          <div className="grid grid-cols-2 gap-1 text-[10px]">
+            <div><span className="text-slate-500">Frequency:</span> <strong className="font-mono text-slate-800">C-Band (5.405 GHz)</strong></div>
+            <div><span className="text-slate-500">Incidence:</span> <strong className="font-mono text-slate-800">38.4° (Mid-swath)</strong></div>
+            <div><span className="text-slate-500">Polarization:</span> <strong className="font-mono text-slate-800">VV (Copolarized)</strong></div>
+            <div><span className="text-slate-500">Dampening:</span> <strong className="font-mono text-emerald-700">12.7 dB Delta</strong></div>
+          </div>
+        </div>
       </div>
 
       {/* 4. LOOK-ALIKE ANALYSIS */}

@@ -166,16 +166,19 @@ export interface LayerVisibilityState {
   sentinel1_sar: boolean;
   sentinel2_optical: boolean;
   sar_detection_tiles: boolean;
+  satellite_footprint: boolean;
   // Oil Spill
   detected_slicks: boolean;
   slick_boundaries: boolean;
   slick_age_labels: boolean;
   slick_confidence_badges: boolean;
+  origin_probability_region: boolean;
   // AIS
   vessel_positions: boolean;
   vessel_tracks: boolean;
   vessel_density_heatmap: boolean;
   suspicious_vessels_only: boolean;
+  all_ais_traffic: boolean;
   // Oceanographic
   ocean_currents: boolean;
   wind_vectors: boolean;
@@ -192,6 +195,8 @@ export interface LayerVisibilityState {
 
 export type BasemapStyle = 'light-gis' | 'oceanographic' | 'satellite' | 'dark-matter';
 
+export type MapIntelligenceMode = 'operational' | 'analysis' | 'satellite';
+
 export interface TimelineState {
   currentTime: Date;
   startTime: Date;
@@ -200,3 +205,22 @@ export interface TimelineState {
   playbackSpeed: 1 | 2 | 4 | 8;
   selectedPreset: '6h' | '12h' | '24h' | '48h' | '7d';
 }
+
+export interface NotificationItem {
+  id: string;
+  type: 'detection' | 'attribution' | 'forecast' | 'system';
+  title: string;
+  description: string;
+  timestamp: string;
+  incidentId?: string;
+  read: boolean;
+}
+
+export interface CopilotMessage {
+  id: string;
+  sender: 'user' | 'assistant';
+  text: string;
+  timestamp: string;
+  suggestedActions?: { label: string; actionType: string; payload?: any }[];
+}
+

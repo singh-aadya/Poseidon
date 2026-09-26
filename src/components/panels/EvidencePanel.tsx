@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Satellite,
   FileText,
@@ -8,16 +8,97 @@ import {
 import { usePoseidonStore } from '../../store/usePoseidonStore';
 
 export const EvidencePanel: React.FC = () => {
+  const [activeChainStep, setActiveChainStep] = useState<number>(1);
+
   const {
     getActiveIncident,
     satelliteComparison,
     setSatelliteComparison,
     getSelectedCandidate,
+    setActiveMode,
+    setMapIntelligenceMode,
+    setLayer,
+    setSelectedCandidateId,
   } = usePoseidonStore();
 
   const inc = getActiveIncident();
   const selectedCandidate = getSelectedCandidate();
   const { mode, maskOpacity } = satelliteComparison;
+
+  const evidenceChain = [
+    {
+      step: 1,
+      title: 'Satellite Sensor Acquisition',
+      finding: 'Sentinel-1A SAR descending pass (Track 135) captures anomaly in MC Block 242.',
+      status: 'VERIFIED',
+      action: () => setMapIntelligenceMode('satellite'),
+    },
+    {
+      step: 2,
+      title: 'Radiometric Calibration',
+      finding: 'Converted to Sigma0 NRCS: -24.8 dB backscatter dampening vs -12.1 dB sea clutter.',
+      status: 'CALIBRATED',
+      action: () => setSatelliteComparison({ mode: 'after' }),
+    },
+    {
+      step: 3,
+      title: 'Speckle Filtering & Noise Rejection',
+      finding: 'Enhanced Lee 5×5 spatial filter preserves edges while suppressing speckle variance.',
+      status: 'PROCESSED',
+      action: () => {},
+    },
+    {
+      step: 4,
+      title: 'Deep U-Net Slick Segmentation',
+      finding: 'ResNeXt-101 Attention U-Net detects slick boundary (IoU 0.912, 18.6 km²).',
+      status: 'EXTRACTED',
+      action: () => setSatelliteComparison({ mode: 'mask' }),
+    },
+    {
+      step: 5,
+      title: 'Look-Alike Discrimination',
+      finding: 'Biogenic film, upwelling, and low-wind artifacts filtered. False alarm risk < 12%.',
+      status: 'VALIDATED',
+      action: () => setActiveMode('detection'),
+    },
+    {
+      step: 6,
+      title: 'Weathering & Age Inversion',
+      finding: 'Fay spreading + hydrodynamic weathering yields estimated spill age of 8–14 hours.',
+      status: 'ESTIMATED',
+      action: () => setActiveMode('detection'),
+    },
+    {
+      step: 7,
+      title: 'Metocean Lagrangian Hindcast',
+      finding: 'HYCOM 0.72 kn currents + GFS 14.2 kn winds reconstruct release point at 27.72°N, 90.62°W.',
+      status: 'RECONSTRUCTED',
+      action: () => {
+        setMapIntelligenceMode('analysis');
+        setLayer('origin_probability_region', true);
+      },
+    },
+    {
+      step: 8,
+      title: 'AIS Trajectory Spatio-Temporal Intersect',
+      finding: '12 corridor vessels filtered; MV OCEAN STAR intersects origin with 0.42 km error.',
+      status: 'CORRELATED',
+      action: () => {
+        setActiveMode('attribution');
+        setSelectedCandidateId('VESSEL-9481923');
+      },
+    },
+    {
+      step: 9,
+      title: 'Multi-Factor Attribution Scoring',
+      finding: 'Attribution confidence scored at 87% with confirmed 18-minute AIS blackout.',
+      status: 'ATTRIBUTED',
+      action: () => {
+        setActiveMode('attribution');
+        setSelectedCandidateId('VESSEL-9481923');
+      },
+    },
+  ];
 
   const handlePrintDossier = () => {
     window.print();
@@ -162,7 +243,50 @@ export const EvidencePanel: React.FC = () => {
         </table>
       </div>
 
-      {/* 4. AIS & Metocean Corroboration Summary */}
+      {/* 4. 9-STEP FORENSIC EVIDENCE CHAIN */}
+      <div className="border-b border-[#E5E7EB] pb-3.5 space-y-2">
+        <div className="flex items-center justify-between text-[11px] font-semibold text-gray-700">
+          <span>9-Step forensic evidence chain</span>
+          <span className="text-[10px] font-mono text-[#1769AA] font-bold">Chain verified (9/9)</span>
+        </div>
+
+        <div className="space-y-1">
+          {evidenceChain.map((item) => {
+            const isSelected = activeChainStep === item.step;
+            return (
+              <div
+                key={item.step}
+                onClick={() => {
+                  setActiveChainStep(item.step);
+                  item.action();
+                }}
+                className={`rounded-sm border p-2 cursor-pointer transition select-none ${
+                  isSelected
+                    ? 'border-l-4 border-l-[#1769AA] border-[#BFDBFE] bg-[#F0F7FF]'
+                    : 'border-slate-200 bg-white hover:bg-slate-50'
+                }`}
+              >
+                <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-1.5 font-semibold text-slate-900">
+                    <span className="font-mono text-[10px] text-slate-400">0{item.step}</span>
+                    <span>{item.title}</span>
+                  </div>
+                  <span className="text-[9px] font-mono font-bold text-emerald-700 bg-emerald-50 px-1 py-0.2 rounded border border-emerald-200">
+                    {item.status}
+                  </span>
+                </div>
+                {isSelected && (
+                  <p className="mt-1.5 text-[11px] text-slate-600 leading-relaxed border-t border-blue-100 pt-1">
+                    {item.finding}
+                  </p>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* 5. AIS & Metocean Corroboration Summary */}
       {selectedCandidate && (
         <div className="py-2 px-2.5 rounded-sm bg-slate-50 border border-slate-200 text-xs text-gray-700 space-y-1">
           <div className="font-semibold text-gray-800">AIS passage corroboration</div>

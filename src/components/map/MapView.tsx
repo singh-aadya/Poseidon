@@ -6,8 +6,65 @@ import { usePoseidonStore } from '../../store/usePoseidonStore';
 import { BasemapStyle } from '../../types';
 import { VectorFlowCanvas } from './VectorFlowCanvas';
 import { MapControls } from './MapControls';
-import { LayerControl } from './LayerControl';
+import { MapIntelligenceBar } from './MapIntelligenceBar';
 import { MapLegend } from './MapLegend';
+
+function createOriginEllipse(
+  centerLng: number,
+  centerLat: number,
+  radiusLngKm: number = 3.2,
+  radiusLatKm: number = 1.8,
+  angleDeg: number = 40
+): [number, number][] {
+  const points: [number, number][] = [];
+  const rad = (angleDeg * Math.PI) / 180;
+  const cosAngle = Math.cos(rad);
+  const sinAngle = Math.sin(rad);
+  const kmPerDegLat = 110.85;
+  const kmPerDegLng = 111.32 * Math.cos((centerLat * Math.PI) / 180);
+  const rx = radiusLngKm / kmPerDegLng;
+  const ry = radiusLatKm / kmPerDegLat;
+
+  for (let i = 0; i <= 36; i++) {
+    const theta = (i * 2 * Math.PI) / 36;
+    const dx = rx * Math.cos(theta);
+    const dy = ry * Math.sin(theta);
+    const rotX = dx * cosAngle - dy * sinAngle;
+    const rotY = dx * sinAngle + dy * cosAngle;
+    points.push([centerLng + rotX, centerLat + rotY]);
+  }
+  return points;
+}
+
+function createSatelliteSwath(centerLng: number, centerLat: number): [number, number][] {
+  const dLng = 0.65;
+  const dLat = 0.48;
+  return [
+    [centerLng - dLng - 0.1, centerLat + dLat],
+    [centerLng + dLng - 0.05, centerLat + dLat + 0.15],
+    [centerLng + dLng + 0.1, centerLat - dLat],
+    [centerLng - dLng + 0.05, centerLat - dLat - 0.15],
+    [centerLng - dLng - 0.1, centerLat + dLat],
+  ];
+}
+
+const BACKGROUND_AIS_VESSELS: [number, number, string][] = [
+  [-90.82, 28.15, 'BULK CARRIER PACIFIC'],
+  [-90.15, 28.25, 'TUG NAVIGATOR'],
+  [-89.95, 27.65, 'CREW VESSEL EXPRESS'],
+  [-90.75, 27.45, 'CONTAINERSHIP MSC LAURA'],
+  [-91.05, 27.95, 'OFFSHORE SUPPLY DEFENDER'],
+  [-89.75, 28.05, 'CHEMICAL TANKER STOLT'],
+  [-90.55, 28.32, 'FISHING VESSEL BLUEFIN'],
+  [-90.25, 27.48, 'BARGE TOW BIG HORSE'],
+  [-89.85, 27.82, 'RESEARCH SURVEY FALOR'],
+  [-91.12, 27.62, 'GENERAL CARGO ARCTIC'],
+  [-90.35, 28.42, 'PILOT BOAT BRAVO'],
+  [-90.95, 28.02, 'SUPPLY VESSEL EDISON'],
+  [-89.65, 27.52, 'TANKER EAGLE BRASILIA'],
+  [-90.68, 27.35, 'TUG MISSISSIPPI TRADER'],
+  [-89.9, 28.38, 'CREW TENDER GULF DISCOVERY'],
+];
 
 // High-reliability public, open-access maritime and GIS basemaps (NOAA, GEBCO, Esri, OSM)
 // Zero API key required, zero watermarks, zero rate limit blocks.
@@ -613,11 +670,11 @@ export const MapView: React.FC = () => {
             'line-color': [
               'case',
               ['get', 'isSelected'],
-              '#1769AA',
-              '#64748B',
+              '#0284C7', // Selected candidate: crisp high-contrast blue
+              '#94A3B8', // Non-selected: subdued slate
             ],
-            'line-width': ['case', ['get', 'isSelected'], 2.2, 1.2],
-            'line-opacity': ['case', ['get', 'isSelected'], 0.9, 0.5],
+            'line-width': ['case', ['get', 'isSelected'], 3.0, 1.2],
+            'line-opacity': ['case', ['get', 'isSelected'], 1.0, 0.35],
           },
         });
 
@@ -627,14 +684,164 @@ export const MapView: React.FC = () => {
           source: 'ais-tracks-source',
           filter: ['get', 'isSpillWindow'],
           paint: {
-            'line-color': '#B42318',
-            'line-width': ['case', ['get', 'isSelected'], 3.0, 1.8],
+            'line-color': [
+              'case',
+              ['get', 'isSelected'],
+              '#DC2626', // Highlighted spill window segment
+              '#F87171',
+            ],
+            'line-width': ['case', ['get', 'isSelected'], 3.6, 1.6],
             'line-dasharray': [3, 2],
+            'line-opacity': ['case', ['get', 'isSelected'], 1.0, 0.4],
           },
         });
       } else {
         const src = map.getSource('ais-tracks-source') as GeoJSONSource;
         src.setData(aisTracksGeoJSON);
+      }
+
+      // 6. Origin Probability Region (Lagrangian Hindcast Dispersion Ellipse)
+      const oldestBreadcrumb =
+        activeIncident.breadcrumbs.length > 0
+          ? activeIncident.breadcrumbs[activeIncident.breadcrumbs.length - 1]
+          : { lng: activeIncident.coordinates.lng - 0.17, lat: activeIncident.coordinates.lat - 0.13 };
+
+      const originEllipseCoords = createOriginEllipse(oldestBreadcrumb.lng, oldestBreadcrumb.lat, 3.2, 1.8, 40);
+
+      const originGeoJSON: GeoJSON.FeatureCollection = {
+        type: 'FeatureCollection',
+        features: [
+          {
+            type: 'Feature',
+            properties: {
+              label: 'Origin Probability Region (82% Conf)',
+              confidence: 0.82,
+            },
+            geometry: {
+              type: 'Polygon',
+              coordinates: [originEllipseCoords],
+            },
+          },
+        ],
+      };
+
+      if (!map.getSource('origin-region-source')) {
+        map.addSource('origin-region-source', {
+          type: 'geojson',
+          data: originGeoJSON,
+        });
+
+        map.addLayer({
+          id: 'origin-region-fill',
+          type: 'fill',
+          source: 'origin-region-source',
+          paint: {
+            'fill-color': '#F59E0B',
+            'fill-opacity': 0.22,
+          },
+        });
+
+        map.addLayer({
+          id: 'origin-region-outline',
+          type: 'line',
+          source: 'origin-region-source',
+          paint: {
+            'line-color': '#D97706',
+            'line-width': 1.8,
+            'line-dasharray': [4, 2],
+          },
+        });
+      } else {
+        const src = map.getSource('origin-region-source') as GeoJSONSource;
+        src.setData(originGeoJSON);
+      }
+
+      // 7. Satellite Swath Footprint Boundary (Sentinel-1 SAR)
+      const swathCoords = createSatelliteSwath(activeIncident.coordinates.lng, activeIncident.coordinates.lat);
+      const swathGeoJSON: GeoJSON.FeatureCollection = {
+        type: 'FeatureCollection',
+        features: [
+          {
+            type: 'Feature',
+            properties: {
+              sensor: 'Sentinel-1A C-SAR',
+              mode: 'IW GRDH',
+            },
+            geometry: {
+              type: 'Polygon',
+              coordinates: [swathCoords],
+            },
+          },
+        ],
+      };
+
+      if (!map.getSource('satellite-footprint-source')) {
+        map.addSource('satellite-footprint-source', {
+          type: 'geojson',
+          data: swathGeoJSON,
+        });
+
+        map.addLayer({
+          id: 'satellite-footprint-fill',
+          type: 'fill',
+          source: 'satellite-footprint-source',
+          paint: {
+            'fill-color': '#0284C7',
+            'fill-opacity': 0.06,
+          },
+        });
+
+        map.addLayer({
+          id: 'satellite-footprint-outline',
+          type: 'line',
+          source: 'satellite-footprint-source',
+          paint: {
+            'line-color': '#0284C7',
+            'line-width': 1.5,
+            'line-dasharray': [4, 4],
+          },
+        });
+      } else {
+        const src = map.getSource('satellite-footprint-source') as GeoJSONSource;
+        src.setData(swathGeoJSON);
+      }
+
+      // 8. Background AIS Corridor Traffic (Subdued Context Dots)
+      const backgroundTrafficFeatures: GeoJSON.Feature[] = BACKGROUND_AIS_VESSELS.map(([lng, lat, name]) => ({
+        type: 'Feature',
+        properties: { name },
+        geometry: {
+          type: 'Point',
+          coordinates: [lng, lat],
+        },
+      }));
+
+      const backgroundAisGeoJSON: GeoJSON.FeatureCollection = {
+        type: 'FeatureCollection',
+        features: backgroundTrafficFeatures,
+      };
+
+      if (!map.getSource('all-ais-source')) {
+        map.addSource('all-ais-source', {
+          type: 'geojson',
+          data: backgroundAisGeoJSON,
+        });
+
+        map.addLayer({
+          id: 'all-ais-dots',
+          type: 'circle',
+          source: 'all-ais-source',
+          paint: {
+            'circle-color': '#64748B',
+            'circle-radius': 2.8,
+            'circle-opacity': 0.4,
+            'circle-stroke-width': 0.5,
+            'circle-stroke-color': '#FFFFFF',
+          },
+        });
+      } else {
+        const src = map.getSource('all-ais-source') as GeoJSONSource;
+        src.setData(backgroundAisGeoJSON);
       }
     },
     [incidents, activeIncidentId, activeIncident, selectedCandidateId, selectedForecastHorizon]
@@ -663,6 +870,11 @@ export const MapView: React.FC = () => {
     toggle('breadcrumbs-dots', layers.breadcrumb_trail);
     toggle('ais-tracks-normal', layers.vessel_tracks);
     toggle('ais-tracks-spill-window', layers.vessel_tracks);
+    toggle('origin-region-fill', layers.origin_probability_region);
+    toggle('origin-region-outline', layers.origin_probability_region);
+    toggle('satellite-footprint-fill', layers.satellite_footprint);
+    toggle('satellite-footprint-outline', layers.satellite_footprint);
+    toggle('all-ais-dots', layers.all_ais_traffic);
   }, [mapLoaded, setupMapLayers, layers]);
 
   // Render Custom HTML Markers for Incident Labels & Vessels (Government GIS Style)
@@ -748,6 +960,30 @@ export const MapView: React.FC = () => {
       });
     }
 
+    // 3. Reconstructed Origin Marker
+    if (layers.origin_probability_region && activeIncident.breadcrumbs.length > 0) {
+      const originPoint = activeIncident.breadcrumbs[activeIncident.breadcrumbs.length - 1];
+      const el = document.createElement('div');
+      el.className = 'cursor-pointer select-none';
+      el.innerHTML = `
+        <div class="flex flex-col items-center">
+          <div class="px-2 py-0.5 rounded border border-amber-600 bg-amber-500 text-white text-[10px] font-sans font-bold shadow-md flex items-center gap-1.5 whitespace-nowrap">
+            <span class="inline-block h-2 w-2 rounded-full bg-white shrink-0 animate-ping"></span>
+            <span>RECONSTRUCTED ORIGIN (82% CONF)</span>
+          </div>
+          <div class="text-[9px] font-mono font-semibold text-amber-800 bg-white/90 px-1 rounded border border-amber-300 mt-0.5 shadow-2xs">
+            ${originPoint.lng.toFixed(2)}°W, ${originPoint.lat.toFixed(2)}°N · -12.4h
+          </div>
+        </div>
+      `;
+
+      const marker = new maplibregl.Marker({ element: el, anchor: 'bottom' })
+        .setLngLat([originPoint.lng, originPoint.lat])
+        .addTo(map);
+
+      activeMarkersRef.current.push(marker);
+    }
+
     return () => {
       activeMarkersRef.current.forEach((m) => m.remove());
       activeMarkersRef.current = [];
@@ -760,6 +996,7 @@ export const MapView: React.FC = () => {
     selectedCandidateId,
     layers.slick_confidence_badges,
     layers.vessel_positions,
+    layers.origin_probability_region,
   ]);
 
   // Handle programmatic flyTo camera targets
@@ -785,8 +1022,8 @@ export const MapView: React.FC = () => {
       {/* Subtle Vector Flow Canvas (animated current and wind streamlines) */}
       <VectorFlowCanvas map={mapRef.current} />
 
-      {/* Floating Conventional GIS Layer Switcher */}
-      <LayerControl />
+      {/* Floating Conventional GIS Layer Switcher & Map Mode HUD */}
+      <MapIntelligenceBar />
 
       {/* Floating Vertical GIS Map Controls (Right Side) */}
       <MapControls map={mapRef.current} />

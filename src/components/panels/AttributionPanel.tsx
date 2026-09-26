@@ -133,10 +133,44 @@ export const AttributionPanel: React.FC = () => {
             </div>
           </div>
 
+          {/* Spatio-Temporal Match Breakdown */}
+          <div className="rounded-sm border border-slate-200 bg-slate-50 p-2.5 space-y-2">
+            <div className="flex items-center justify-between text-[11px] font-bold text-slate-800 border-b border-slate-200 pb-1">
+              <span>Spatio-temporal match metrics</span>
+              <span className="text-[10px] font-mono text-emerald-700 font-semibold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                P(Source | Evidence) = 0.87
+              </span>
+            </div>
+            <table className="w-full text-[11px]">
+              <tbody className="divide-y divide-slate-200/70">
+                <tr>
+                  <td className="py-1 text-slate-600">Distance to reconstructed origin</td>
+                  <td className="py-1 text-right font-mono font-bold text-slate-900">0.42 km <span className="text-[10px] text-slate-400 font-normal">(±1.4 km)</span></td>
+                </tr>
+                <tr>
+                  <td className="py-1 text-slate-600">Temporal passage offset</td>
+                  <td className="py-1 text-right font-mono font-bold text-slate-900">+18 min <span className="text-[10px] text-slate-400 font-normal">(coincident)</span></td>
+                </tr>
+                <tr>
+                  <td className="py-1 text-slate-600">Kinematic speed anomaly</td>
+                  <td className="py-1 text-right font-mono font-bold text-amber-700">14.1 → 8.2 kn <span className="text-[10px] text-amber-600 font-normal">(-41.8%)</span></td>
+                </tr>
+                <tr>
+                  <td className="py-1 text-slate-600">Heading adjustment</td>
+                  <td className="py-1 text-right font-mono font-bold text-slate-900">12° starboard <span className="text-[10px] text-slate-400 font-normal">(in window)</span></td>
+                </tr>
+                <tr>
+                  <td className="py-1 text-slate-600">Drift trajectory alignment</td>
+                  <td className="py-1 text-right font-mono font-bold text-slate-900">0.94 <span className="text-[10px] text-slate-400 font-normal">(Pearson r)</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
           {/* Breakdown Score Bars */}
           <div className="space-y-1.5 text-xs">
             <div className="text-[11px] font-semibold text-gray-700 mb-1">
-              Consistency scores
+              Multi-criteria consistency scores
             </div>
             {[
               { label: 'Spatial proximity', val: selectedCandidate.breakdown.spatio_temporal_proximity },
