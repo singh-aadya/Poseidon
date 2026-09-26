@@ -1,0 +1,74 @@
+import React, { useEffect } from 'react';
+import { usePoseidonStore } from './store/usePoseidonStore';
+import { TopNav } from './components/header/TopNav';
+import { SystemStatusModal } from './components/header/SystemStatusModal';
+import { IncidentExplorer } from './components/panels/IncidentExplorer';
+import { RightIntelligencePanel } from './components/panels/RightIntelligencePanel';
+import { VesselDetailModal } from './components/panels/VesselDetailModal';
+import { MapView } from './components/map/MapView';
+import { BottomTimeline } from './components/timeline/BottomTimeline';
+import { DemoInvestigationModal } from './components/demo/DemoInvestigationModal';
+
+export const App: React.FC = () => {
+  const {
+    leftPanelOpen,
+    rightPanelOpen,
+    setActiveIncidentId,
+  } = usePoseidonStore();
+
+  // Listen for initial hash changes (e.g. #/map/@-90.45,27.85,9.6z;incident=PSDN-2026-00142)
+  useEffect(() => {
+    const handleHash = () => {
+      const hash = window.location.hash;
+      const incidentMatch = hash.match(/incident=([A-Za-z0-9_-]+)/);
+      if (incidentMatch && incidentMatch[1]) {
+        setActiveIncidentId(incidentMatch[1]);
+      }
+    };
+
+    handleHash();
+    window.addEventListener('hashchange', handleHash);
+    return () => window.removeEventListener('hashchange', handleHash);
+  }, [setActiveIncidentId]);
+
+  return (
+    <div className="flex h-screen w-screen flex-col overflow-hidden bg-[#070a0f] text-slate-100 font-sans">
+      {/* 1. Compact NASA FIRMS-Style Top Navigation */}
+      <TopNav />
+
+      {/* 2. Main Middle Workspace: Map + Floating Collapsible Overlays */}
+      <div className="relative flex flex-1 overflow-hidden">
+        {/* Left Collapsible Incident Explorer */}
+        {leftPanelOpen && (
+          <div className="absolute lg:relative z-20 h-full w-80 max-w-[85vw] shrink-0 shadow-2xl transition-all duration-300">
+            <IncidentExplorer />
+          </div>
+        )}
+
+        {/* Dominant WebGL Map Centerpiece */}
+        <main className="relative flex-1 h-full w-full overflow-hidden">
+          <MapView />
+
+          {/* Interactive Guided Demo HUD */}
+          <DemoInvestigationModal />
+        </main>
+
+        {/* Right Collapsible Intelligence Panel */}
+        {rightPanelOpen && (
+          <div className="absolute right-0 top-0 bottom-0 lg:relative z-20 h-full w-96 max-w-[90vw] shrink-0 shadow-2xl transition-all duration-300">
+            <RightIntelligencePanel />
+          </div>
+        )}
+      </div>
+
+      {/* 3. Bottom Playback Timeline */}
+      <BottomTimeline />
+
+      {/* 4. Global Floating Modals */}
+      <SystemStatusModal />
+      <VesselDetailModal />
+    </div>
+  );
+};
+
+export default App;

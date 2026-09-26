@@ -1,0 +1,177 @@
+import React, { useState } from 'react';
+import type { Map as MapLibreMap } from 'maplibre-gl';
+import {
+  Plus,
+  Minus,
+  Compass,
+  Home,
+  Crosshair,
+  Layers,
+  Maximize2,
+  Minimize2,
+  Ruler,
+  Check,
+} from 'lucide-react';
+import { usePoseidonStore } from '../../store/usePoseidonStore';
+import { BasemapStyle } from '../../types';
+
+interface MapControlsProps {
+  map: MapLibreMap | null;
+}
+
+export const MapControls: React.FC<MapControlsProps> = ({ map }) => {
+  const { basemap, setBasemap, getActiveIncident, resetView, flyToCoords } = usePoseidonStore();
+  const [basemapOpen, setBasemapOpen] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [measureActive, setMeasureActive] = useState(false);
+
+  const activeIncident = getActiveIncident();
+
+  const handleZoomIn = () => {
+    map?.zoomIn({ duration: 250 });
+  };
+
+  const handleZoomOut = () => {
+    map?.zoomOut({ duration: 250 });
+  };
+
+  const handleResetNorth = () => {
+    map?.resetNorthPitch({ duration: 400 });
+  };
+
+  const handleFocusIncident = () => {
+    if (activeIncident) {
+      flyToCoords(activeIncident.coordinates, 9.8);
+    }
+  };
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().then(() => setIsFullscreen(true)).catch(() => {});
+    } else {
+      document.exitFullscreen().then(() => setIsFullscreen(false)).catch(() => {});
+    }
+  };
+
+  const basemapOptions: { id: BasemapStyle; label: string; desc: string }[] = [
+    { id: 'light-gis', label: 'Government GIS (Light)', desc: 'Muted cartographic reference' },
+    { id: 'oceanographic', label: 'Nautical Hydrographic', desc: 'Bathymetric contours & depths' },
+    { id: 'satellite', label: 'Satellite Imagery', desc: 'True color orbital imagery' },
+    { id: 'dark-matter', label: 'Dark Oceanographic', desc: 'High-contrast SAR mode' },
+  ];
+
+  return (
+    <div className="absolute right-3.5 top-3.5 z-20 flex flex-col items-end gap-2">
+      {/* Basemap Selection Flyout */}
+      {basemapOpen && (
+        <div
+          className="mb-1 w-60 rounded border border-[#D1D5DB] bg-white p-2 shadow-md"
+          style={{ borderRadius: '4px' }}
+        >
+          <div className="px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-gray-500 border-b border-gray-100">
+            Basemap layer
+          </div>
+          <div className="mt-1 space-y-0.5">
+            {basemapOptions.map((opt) => (
+              <button
+                key={opt.id}
+                onClick={() => {
+                  setBasemap(opt.id);
+                  setBasemapOpen(false);
+                }}
+                className={`flex w-full items-center justify-between rounded px-2.5 py-1.5 text-left text-xs transition ${
+                  basemap === opt.id
+                    ? 'bg-[#EFF6FF] text-[#1769AA] font-semibold border border-[#BFDBFE]'
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+                style={{ borderRadius: '3px' }}
+              >
+                <div>
+                  <div className="font-medium text-gray-900">{opt.label}</div>
+                  <div className="text-[10px] text-gray-500">{opt.desc}</div>
+                </div>
+                {basemap === opt.id && <Check className="h-3.5 w-3.5 text-[#1769AA] shrink-0 ml-1" />}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Conventional Government GIS Control Stack */}
+      <div
+        className="flex flex-col overflow-hidden rounded border border-[#D1D5DB] bg-white shadow-sm divide-y divide-[#E5E7EB]"
+        style={{ borderRadius: '4px' }}
+      >
+        <button
+          onClick={handleZoomIn}
+          title="Zoom in"
+          className="flex h-7 w-7 items-center justify-center text-gray-700 hover:bg-gray-100 transition"
+        >
+          <Plus className="h-4 w-4" />
+        </button>
+        <button
+          onClick={handleZoomOut}
+          title="Zoom out"
+          className="flex h-7 w-7 items-center justify-center text-gray-700 hover:bg-gray-100 transition"
+        >
+          <Minus className="h-4 w-4" />
+        </button>
+        <button
+          onClick={handleResetNorth}
+          title="Reset orientation (North up)"
+          className="flex h-7 w-7 items-center justify-center text-gray-700 hover:bg-gray-100 transition"
+        >
+          <Compass className="h-3.5 w-3.5" />
+        </button>
+        <button
+          onClick={handleFocusIncident}
+          title="Zoom to active incident"
+          className="flex h-7 w-7 items-center justify-center text-[#1769AA] hover:bg-gray-100 transition"
+        >
+          <Crosshair className="h-3.5 w-3.5" />
+        </button>
+        <button
+          onClick={resetView}
+          title="Reset to global view"
+          className="flex h-7 w-7 items-center justify-center text-gray-700 hover:bg-gray-100 transition"
+        >
+          <Home className="h-3.5 w-3.5" />
+        </button>
+        <button
+          onClick={() => setBasemapOpen(!basemapOpen)}
+          title="Select basemap"
+          className={`flex h-7 w-7 items-center justify-center transition ${
+            basemapOpen ? 'bg-[#EFF6FF] text-[#1769AA]' : 'text-gray-700 hover:bg-gray-100'
+          }`}
+        >
+          <Layers className="h-3.5 w-3.5" />
+        </button>
+        <button
+          onClick={() => setMeasureActive(!measureActive)}
+          title="Measure distance"
+          className={`flex h-7 w-7 items-center justify-center transition ${
+            measureActive ? 'bg-[#EFF6FF] text-[#1769AA]' : 'text-gray-700 hover:bg-gray-100'
+          }`}
+        >
+          <Ruler className="h-3.5 w-3.5" />
+        </button>
+        <button
+          onClick={toggleFullscreen}
+          title={isFullscreen ? 'Exit full screen' : 'Full screen map'}
+          className="flex h-7 w-7 items-center justify-center text-gray-700 hover:bg-gray-100 transition"
+        >
+          {isFullscreen ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
+        </button>
+      </div>
+
+      {measureActive && (
+        <div
+          className="rounded border border-[#D1D5DB] bg-white px-2.5 py-1 text-xs text-gray-700 shadow-sm"
+          style={{ borderRadius: '4px' }}
+        >
+          Click map to measure nautical distance
+        </div>
+      )}
+    </div>
+  );
+};
