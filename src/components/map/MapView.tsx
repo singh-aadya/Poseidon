@@ -259,13 +259,14 @@ export const MapView: React.FC = () => {
           lng: parseFloat(match[1]),
           lat: parseFloat(match[2]),
           zoom: parseFloat(match[3]),
+          fromHash: true,
         };
       }
     } catch {
       // fallback
     }
-    // Regional scale centered around Mississippi Canyon / Gulf of Mexico
-    return { lng: -90.45, lat: 27.85, zoom: 10.4 };
+    // Global / regional overview scale showing international maritime domain
+    return { lng: 15.0, lat: 25.0, zoom: 2.2, fromHash: false };
   };
 
   // Initialize Map
@@ -308,6 +309,26 @@ export const MapView: React.FC = () => {
       map.touchZoomRotate.enable();
       map.keyboard.enable();
       map.boxZoom.enable();
+
+      // If initial view wasn't specifically provided in URL hash, fit all POSEIDON incidents
+      if (!initial.fromHash) {
+        const allIncidents = usePoseidonStore.getState().incidents;
+        if (allIncidents.length > 0) {
+          let minLng = 180, maxLng = -180, minLat = 90, maxLat = -90;
+          allIncidents.forEach((inc) => {
+            const { lng, lat } = inc.coordinates;
+            if (lng < minLng) minLng = lng;
+            if (lng > maxLng) maxLng = lng;
+            if (lat < minLat) minLat = lat;
+            if (lat > maxLat) maxLat = lat;
+          });
+          map.fitBounds([[minLng, minLat], [maxLng, maxLat]], {
+            padding: 80,
+            maxZoom: 5.5,
+            duration: 0,
+          });
+        }
+      }
 
       map.resize();
     });
@@ -904,54 +925,120 @@ export const MapView: React.FC = () => {
     toggle('all-ais-dots', layers.all_ais_traffic);
   }, [mapLoaded, setupMapLayers, layers]);
 
-  // Render Custom HTML Markers for Incident Labels & Vessels (Government GIS Style)
-  useEffect(() => {
+  // Render Custom HTML Markers for Incident Labels, Clusters & Vessels (Government GIS Style)
+  const updateIncidentMarkers = useCallback(() => {
     const map = mapRef.current;
     if (!map || !mapLoaded) return;
 
     activeMarkersRef.current.forEach((m) => m.remove());
     activeMarkersRef.current = [];
 
-    // 1. Incident centroid markers: Compact GIS labels (● PSDN-00142 \n 94% confidence)
+    // 1. Incident centroid markers & low-zoom clusters
     if (layers.slick_confidence_badges) {
+      const zoom = map.getZoom();
+
+      // Screen-space proximity clustering for overview zoom levels
+      const clusters: { items: typeof incidents; center: [number, number] }[] = [];
+      const visited = new Set<string>();
+
       incidents.forEach((inc) => {
-        const el = document.createElement('div');
-        el.className = 'cursor-pointer select-none';
+        if (visited.has(inc.id)) return;
+        const p1 = map.project([inc.coordinates.lng, inc.coordinates.lat]);
+        const group = [inc];
+        visited.add(inc.id);
 
-        const isSelected = inc.id === activeIncidentId;
-        const confPercent = Math.round(inc.confidence * 100);
-        const dotColor =
-          inc.severity === 'HIGH' ? '#B42318' : inc.severity === 'MEDIUM' ? '#C47A00' : '#6B7280';
+        // Cluster incidents that overlap or are closely grouped on screen at overview zoom
+        if (zoom < 6.0) {
+          incidents.forEach((other) => {
+            if (visited.has(other.id)) return;
+            const p2 = map.project([other.coordinates.lng, other.coordinates.lat]);
+            const dist = Math.hypot(p1.x - p2.x, p1.y - p2.y);
+            if (dist < 48) {
+              group.push(other);
+              visited.add(other.id);
+            }
+          });
+        }
 
-        el.innerHTML = `
-          <div class="px-2 py-0.5 rounded border ${
-            isSelected
-              ? 'bg-white border-[#17324D] text-[#17324D] font-bold shadow-md'
-              : 'bg-white/95 border-[#D1D5DB] text-gray-800 shadow-2xs hover:border-gray-400'
-          } text-[10px] font-sans transition">
-            <div class="flex items-center gap-1.5">
-              <span class="inline-block h-2 w-2 rounded-full shrink-0" style="background-color: ${dotColor}"></span>
-              <span class="font-mono font-bold">${inc.id}</span>
+        const avgLng = group.reduce((sum, g) => sum + g.coordinates.lng, 0) / group.length;
+        const avgLat = group.reduce((sum, g) => sum + g.coordinates.lat, 0) / group.length;
+        clusters.push({ items: group, center: [avgLng, avgLat] });
+      });
+
+      clusters.forEach((cluster) => {
+        if (cluster.items.length > 1) {
+          // Clustered incident marker
+          const el = document.createElement('div');
+          el.className = 'cursor-pointer select-none';
+          const hasSelected = cluster.items.some((g) => g.id === activeIncidentId);
+
+          el.innerHTML = `
+            <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full ${
+              hasSelected
+                ? 'bg-[#17324D] text-white ring-2 ring-[#0284C7] shadow-md'
+                : 'bg-white/95 border border-[#D1D5DB] text-slate-800 shadow-xs hover:border-slate-400'
+            } text-[11px] font-sans font-bold transition">
+              <span class="inline-block h-2 w-2 rounded-full bg-[#B42318] shrink-0"></span>
+              <span class="font-mono">${cluster.items.length} incidents</span>
             </div>
-            <div class="text-[9px] text-gray-500 font-mono pl-3.5 leading-tight">${confPercent}% confidence</div>
-          </div>
-        `;
+          `;
 
-        el.onclick = (e) => {
-          e.stopPropagation();
-          setActiveIncidentId(inc.id);
-        };
+          el.onclick = (e) => {
+            e.stopPropagation();
+            map.flyTo({
+              center: cluster.center,
+              zoom: Math.min(map.getZoom() + 2.5, 9),
+              duration: 700,
+            });
+          };
 
-        const marker = new maplibregl.Marker({ element: el, anchor: 'bottom' })
-          .setLngLat([inc.coordinates.lng, inc.coordinates.lat])
-          .addTo(map);
+          const marker = new maplibregl.Marker({ element: el, anchor: 'center' })
+            .setLngLat(cluster.center)
+            .addTo(map);
 
-        activeMarkersRef.current.push(marker);
+          activeMarkersRef.current.push(marker);
+        } else {
+          // Individual subtle GIS marker
+          const inc = cluster.items[0];
+          const isSelected = inc.id === activeIncidentId;
+          const confPercent = Math.round(inc.confidence * 100);
+          const dotColor =
+            inc.severity === 'HIGH' ? '#B42318' : inc.severity === 'MEDIUM' ? '#C47A00' : '#16A34A';
+
+          const el = document.createElement('div');
+          el.className = 'cursor-pointer select-none';
+
+          el.innerHTML = `
+            <div class="px-2 py-0.5 rounded border ${
+              isSelected
+                ? 'bg-white border-[#17324D] text-[#17324D] font-bold shadow-md ring-2 ring-[#17324D]/25'
+                : 'bg-white/95 border-[#D1D5DB] text-gray-800 shadow-2xs hover:border-gray-400'
+            } text-[10px] font-sans transition">
+              <div class="flex items-center gap-1.5">
+                <span class="inline-block h-2 w-2 rounded-full shrink-0" style="background-color: ${dotColor}"></span>
+                <span class="font-mono font-bold">${inc.id}</span>
+              </div>
+              <div class="text-[9px] text-gray-500 font-mono pl-3.5 leading-tight">${confPercent}% conf · ${inc.area_km2.toFixed(1)} km²</div>
+            </div>
+          `;
+
+          el.onclick = (e) => {
+            e.stopPropagation();
+            // CRITICAL: Simply select the incident, DO NOT zoom/fly map!
+            setActiveIncidentId(inc.id);
+          };
+
+          const marker = new maplibregl.Marker({ element: el, anchor: 'bottom' })
+            .setLngLat([inc.coordinates.lng, inc.coordinates.lat])
+            .addTo(map);
+
+          activeMarkersRef.current.push(marker);
+        }
       });
     }
 
     // 2. Candidate Vessel Directional Markers
-    if (layers.vessel_positions) {
+    if (layers.vessel_positions && activeIncident.candidates) {
       activeIncident.candidates.forEach((cand) => {
         const isSelected = cand.id === selectedCandidateId;
         const el = document.createElement('div');
@@ -1010,11 +1097,6 @@ export const MapView: React.FC = () => {
 
       activeMarkersRef.current.push(marker);
     }
-
-    return () => {
-      activeMarkersRef.current.forEach((m) => m.remove());
-      activeMarkersRef.current = [];
-    };
   }, [
     mapLoaded,
     incidents,
@@ -1024,19 +1106,48 @@ export const MapView: React.FC = () => {
     layers.slick_confidence_badges,
     layers.vessel_positions,
     layers.origin_probability_region,
+    setActiveIncidentId,
+    setSelectedCandidateId,
   ]);
 
-  // Handle programmatic flyTo camera targets
+  // Sync HTML markers with map and camera moves
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapLoaded) return;
+
+    updateIncidentMarkers();
+
+    map.on('zoomend', updateIncidentMarkers);
+    map.on('moveend', updateIncidentMarkers);
+
+    return () => {
+      map.off('zoomend', updateIncidentMarkers);
+      map.off('moveend', updateIncidentMarkers);
+      activeMarkersRef.current.forEach((m) => m.remove());
+      activeMarkersRef.current = [];
+    };
+  }, [updateIncidentMarkers, mapLoaded]);
+
+  // Handle programmatic flyTo / fitBounds camera targets
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !mapFlyTarget) return;
 
-    map.flyTo({
-      center: mapFlyTarget.center,
-      zoom: mapFlyTarget.zoom,
-      duration: mapFlyTarget.duration || 1400,
-      essential: true,
-    });
+    if (mapFlyTarget.bounds) {
+      map.fitBounds(mapFlyTarget.bounds, {
+        padding: 80,
+        maxZoom: 5.5,
+        duration: mapFlyTarget.duration || 1400,
+        essential: true,
+      });
+    } else if (mapFlyTarget.center && mapFlyTarget.zoom !== undefined) {
+      map.flyTo({
+        center: mapFlyTarget.center,
+        zoom: mapFlyTarget.zoom,
+        duration: mapFlyTarget.duration || 1400,
+        essential: true,
+      });
+    }
 
     clearMapFlyTarget();
   }, [mapFlyTarget, clearMapFlyTarget]);

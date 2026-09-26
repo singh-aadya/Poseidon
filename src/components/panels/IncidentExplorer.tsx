@@ -5,6 +5,7 @@ import {
   SlidersHorizontal,
   ChevronDown,
   ChevronUp,
+  Crosshair,
 } from 'lucide-react';
 import { usePoseidonStore } from '../../store/usePoseidonStore';
 import { Incident } from '../../types';
@@ -22,6 +23,7 @@ export const IncidentExplorer: React.FC = () => {
     resetFilters,
     getFilteredIncidents,
     setRightPanelOpen,
+    flyToCoords,
   } = usePoseidonStore();
 
   const filteredIncidents = getFilteredIncidents();
@@ -79,6 +81,14 @@ export const IncidentExplorer: React.FC = () => {
             placeholder="Search incident ID, vessel or region..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && filteredIncidents.length > 0) {
+                const target = filteredIncidents[0];
+                setActiveIncidentId(target.id);
+                setRightPanelOpen(true);
+                flyToCoords(target.coordinates, 10.4);
+              }
+            }}
             className="w-full rounded-sm border border-[#D1D5DB] bg-white py-1 pl-8 pr-7 text-xs text-gray-900 placeholder-gray-400 focus:border-[#1769AA] focus:outline-none focus:ring-1 focus:ring-[#1769AA]"
           />
           {searchQuery && (
@@ -193,9 +203,25 @@ export const IncidentExplorer: React.FC = () => {
                       {inc.id}
                     </span>
                   </div>
-                  <span className="text-[11px] text-gray-500 font-medium">
-                    {inc.region}
-                  </span>
+                  <div className="flex items-center gap-1.5">
+                    {isSelected && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          flyToCoords(inc.coordinates, 10.4);
+                        }}
+                        title="Focus map on this incident"
+                        className="flex items-center gap-0.5 rounded-xs bg-[#1769AA] text-white px-1.5 py-0.2 text-[10px] font-semibold hover:bg-[#12538A] transition cursor-pointer"
+                      >
+                        <Crosshair className="h-2.5 w-2.5" />
+                        <span>Focus</span>
+                      </button>
+                    )}
+                    <span className="text-[11px] text-gray-500 font-medium">
+                      {inc.region}
+                    </span>
+                  </div>
                 </div>
 
                 {/* Slick Name */}

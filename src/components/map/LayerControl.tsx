@@ -15,15 +15,15 @@ export const LayerControl: React.FC = () => {
   ];
 
   const intelligenceLayers: { key: keyof LayerVisibilityState; label: string }[] = [
-    { key: 'detected_slicks', label: 'Detected oil slicks' },
-    { key: 'origin_probability_region', label: 'Reconstructed origin region' },
-    { key: 'satellite_footprint', label: 'Satellite SAR swath footprint' },
-    { key: 'source_candidates', label: 'Candidate vessel markers' },
-    { key: 'vessel_tracks', label: 'Candidate historical tracks' },
-    { key: 'all_ais_traffic', label: 'Background corridor AIS' },
+    { key: 'slick_confidence_badges', label: 'Incident markers & labels' },
+    { key: 'detected_slicks', label: 'Detected slick polygons' },
     { key: 'breadcrumb_trail', label: 'Reverse drift hindcast' },
-    { key: 'forecast_trajectory', label: '48h forecast trajectory' },
-    { key: 'forecast_uncertainty_cone', label: 'Forecast uncertainty cone' },
+    { key: 'origin_probability_region', label: 'Reconstructed origin region' },
+    { key: 'forecast_trajectory', label: 'Forecast trajectory & cone' },
+    { key: 'vessel_positions', label: 'Relevant candidate AIS vessels' },
+    { key: 'vessel_tracks', label: 'Relevant vessel historical tracks' },
+    { key: 'all_ais_traffic', label: 'All corridor AIS traffic' },
+    { key: 'satellite_footprint', label: 'Satellite SAR swath footprint' },
     { key: 'ocean_currents', label: 'Surface currents (HYCOM)' },
     { key: 'wind_vectors', label: 'Surface winds (GFS)' },
   ];
@@ -62,19 +62,20 @@ export const LayerControl: React.FC = () => {
               <span className="text-gray-300">|</span>
               <button
                 onClick={() => {
+                  setLayer('slick_confidence_badges', true);
                   setLayer('detected_slicks', true);
                   setLayer('slick_boundaries', true);
-                  setLayer('origin_probability_region', true);
-                  setLayer('satellite_footprint', true);
-                  setLayer('vessel_positions', true);
-                  setLayer('vessel_tracks', true);
-                  setLayer('source_candidates', true);
-                  setLayer('breadcrumb_trail', true);
-                  setLayer('forecast_trajectory', true);
-                  setLayer('forecast_uncertainty_cone', true);
+                  setLayer('origin_probability_region', false);
+                  setLayer('satellite_footprint', false);
+                  setLayer('vessel_positions', false);
+                  setLayer('vessel_tracks', false);
+                  setLayer('source_candidates', false);
+                  setLayer('breadcrumb_trail', false);
+                  setLayer('forecast_trajectory', false);
+                  setLayer('forecast_uncertainty_cone', false);
                   setLayer('all_ais_traffic', false);
-                  setLayer('ocean_currents', true);
-                  setLayer('wind_vectors', true);
+                  setLayer('ocean_currents', false);
+                  setLayer('wind_vectors', false);
                 }}
                 className="text-gray-500 hover:underline"
               >

@@ -143,10 +143,16 @@ interface PoseidonState {
   copilotMessages: CopilotMessage[];
 
   // Map Camera Target
-  mapFlyTarget: { center: [number, number]; zoom: number; duration?: number } | null;
+  mapFlyTarget: {
+    center?: [number, number];
+    zoom?: number;
+    bounds?: [[number, number], [number, number]];
+    duration?: number;
+  } | null;
 
   // Actions
   setActiveIncidentId: (id: string) => void;
+  fitAllIncidents: () => void;
   setActiveMode: (mode: AppMode) => void;
   setSelectedCandidateId: (id: string | null) => void;
   setSelectedForecastHorizon: (horizon: 6 | 12 | 24 | 48) => void;
@@ -218,31 +224,31 @@ const DEFAULT_LAYERS: LayerVisibilityState = {
   sentinel1_sar: true,
   sentinel2_optical: false,
   sar_detection_tiles: true,
-  satellite_footprint: true,
-  // Oil Spill
+  satellite_footprint: false,
+  // Oil Spill (Default ON for overview)
   detected_slicks: true,
   slick_boundaries: true,
   slick_age_labels: true,
   slick_confidence_badges: true,
-  origin_probability_region: true,
-  // AIS
-  vessel_positions: true,
-  vessel_tracks: true,
+  origin_probability_region: false,
+  // AIS (Default OFF - no clutter until requested)
+  vessel_positions: false,
+  vessel_tracks: false,
   vessel_density_heatmap: false,
   suspicious_vessels_only: false,
   all_ais_traffic: false,
-  // Oceanographic
-  ocean_currents: true,
-  wind_vectors: true,
+  // Oceanographic (Clean overview)
+  ocean_currents: false,
+  wind_vectors: false,
   waves: false,
   sea_surface_temp: false,
-  // Forecast
-  forecast_trajectory: true,
-  forecast_uncertainty_cone: true,
-  // Investigation
-  source_candidates: true,
-  breadcrumb_trail: true,
-  evidence_links: true,
+  // Forecast (Default OFF until requested)
+  forecast_trajectory: false,
+  forecast_uncertainty_cone: false,
+  // Investigation (Default OFF)
+  source_candidates: false,
+  breadcrumb_trail: false,
+  evidence_links: false,
 };
 
 const NOW = new Date('2026-09-26T16:00:00Z');
@@ -351,8 +357,7 @@ export const usePoseidonStore = create<PoseidonState>((set, get) => ({
     maskOpacity: 0.7,
   },
 
-  mapFlyTarget: { center: [-90.45, 27.85], zoom: 10.4, duration: 1800 },
-
+  mapFlyTarget: null,
   setActiveIncidentId: (id: string) => {
     if (get().activeIncidentId === id) return;
     const inc = get().incidents.find((i) => i.id === id);
@@ -360,14 +365,11 @@ export const usePoseidonStore = create<PoseidonState>((set, get) => ({
 
     const firstCandidate = inc.candidates.length > 0 ? inc.candidates[0].id : null;
 
+    // Notice: mapFlyTarget is deliberately NOT set here.
+    // Selecting an incident updates the intelligence panels without forcing the map camera to jump.
     set({
       activeIncidentId: id,
       selectedCandidateId: firstCandidate,
-      mapFlyTarget: {
-        center: [inc.coordinates.lng, inc.coordinates.lat],
-        zoom: 10.4,
-        duration: 1800,
-      },
     });
   },
 
@@ -687,14 +689,48 @@ export const usePoseidonStore = create<PoseidonState>((set, get) => ({
 
   flyToCoords: (coords: { lng: number; lat: number }, zoom: number = 9.8) => {
     set({
-      mapFlyTarget: { center: [coords.lng, coords.lat], zoom, duration: 1800 },
+      mapFlyTarget: { center: [coords.lng, coords.lat], zoom, duration: 1600 },
+    });
+  },
+
+  fitAllIncidents: () => {
+    const incidents = get().incidents;
+    if (!incidents || incidents.length === 0) return;
+    let minLng = 180;
+    let maxLng = -180;
+    let minLat = 90;
+    let maxLat = -90;
+
+    incidents.forEach((inc) => {
+      const { lng, lat } = inc.coordinates;
+      if (lng < minLng) minLng = lng;
+      if (lng > maxLng) maxLng = lng;
+      if (lat < minLat) minLat = lat;
+      if (lat > maxLat) maxLat = lat;
+    });
+
+    if (minLng === maxLng) {
+      minLng -= 2;
+      maxLng += 2;
+    }
+    if (minLat === maxLat) {
+      minLat -= 2;
+      maxLat += 2;
+    }
+
+    set({
+      mapFlyTarget: {
+        bounds: [
+          [minLng, minLat],
+          [maxLng, maxLat],
+        ],
+        duration: 1600,
+      },
     });
   },
 
   resetView: () => {
-    set({
-      mapFlyTarget: { center: [-35.0, 25.0], zoom: 3.2, duration: 2000 },
-    });
+    get().fitAllIncidents();
   },
 
   clearMapFlyTarget: () => set({ mapFlyTarget: null }),

@@ -2,7 +2,7 @@ import React from 'react';
 import { usePoseidonStore } from '../../store/usePoseidonStore';
 import { LayerControl } from './LayerControl';
 import { MapIntelligenceMode } from '../../types';
-import { Activity, Compass, Orbit, Waves } from 'lucide-react';
+import { Activity, Compass, Orbit, Waves, Globe, Crosshair } from 'lucide-react';
 
 export const MapIntelligenceBar: React.FC = () => {
   const {
@@ -11,6 +11,8 @@ export const MapIntelligenceBar: React.FC = () => {
     getActiveIncident,
     getSelectedCandidate,
     isReplayMode,
+    fitAllIncidents,
+    flyToCoords,
   } = usePoseidonStore();
 
   const incident = getActiveIncident();
@@ -68,6 +70,29 @@ export const MapIntelligenceBar: React.FC = () => {
               );
             })}
           </div>
+        </div>
+
+        {/* World Overview & Focus Selected Actions */}
+        <div className="flex items-center gap-1 rounded-sm border border-[#D1D5DB] bg-white p-0.5 shadow-xs">
+          <button
+            type="button"
+            onClick={fitAllIncidents}
+            title="View all incidents (fit overview)"
+            className="flex items-center gap-1 rounded-xs px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition"
+          >
+            <Globe className="h-3.5 w-3.5 text-[#1769AA]" />
+            <span>All Incidents</span>
+          </button>
+          <span className="h-4 w-px bg-slate-200" />
+          <button
+            type="button"
+            onClick={() => flyToCoords(incident.coordinates, 10.4)}
+            title={`Focus active incident: ${incident.id}`}
+            className="flex items-center gap-1 rounded-xs px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition"
+          >
+            <Crosshair className="h-3.5 w-3.5 text-[#B42318]" />
+            <span>Focus Active</span>
+          </button>
         </div>
 
         {/* Replay indicator pill if active */}

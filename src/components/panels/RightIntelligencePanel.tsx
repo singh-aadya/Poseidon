@@ -4,6 +4,7 @@ import {
   Wind,
   Ship,
   FileText,
+  Crosshair,
 } from 'lucide-react';
 import { usePoseidonStore } from '../../store/usePoseidonStore';
 import { AppMode } from '../../types';
@@ -17,6 +18,7 @@ export const RightIntelligencePanel: React.FC = () => {
     activeMode,
     setActiveMode,
     getActiveIncident,
+    flyToCoords,
   } = usePoseidonStore();
 
   const inc = getActiveIncident();
@@ -49,7 +51,18 @@ export const RightIntelligencePanel: React.FC = () => {
         </div>
 
         <div className="mt-1 flex items-baseline justify-between">
-          <div className="font-mono text-sm font-bold text-[#17324D]">{inc.id}</div>
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-sm font-bold text-[#17324D]">{inc.id}</span>
+            <button
+              type="button"
+              onClick={() => flyToCoords(inc.coordinates, 10.4)}
+              title="Focus map on this incident"
+              className="flex items-center gap-1 rounded-xs border border-[#BFDBFE] bg-[#EFF6FF] px-1.5 py-0.5 text-[10px] font-semibold text-[#1769AA] hover:bg-[#DBEAFE] transition cursor-pointer"
+            >
+              <Crosshair className="h-2.5 w-2.5" />
+              <span>Focus map</span>
+            </button>
+          </div>
           <span className="font-mono text-xs text-gray-700 font-semibold">
             {Math.round(inc.confidence * 100)}% detection
           </span>
