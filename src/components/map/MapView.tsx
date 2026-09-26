@@ -9,6 +9,9 @@ import { MapControls } from './MapControls';
 import { MapIntelligenceBar } from './MapIntelligenceBar';
 import { MapLegend } from './MapLegend';
 
+// Fix MapLibre GL Web Worker loading in Vite production builds
+maplibregl.config.WORKER_URL = '/maplibre-gl-worker.mjs';
+
 function createOriginEllipse(
   centerLng: number,
   centerLat: number,
@@ -250,36 +253,17 @@ export const MapView: React.FC = () => {
   const prevBasemapRef = useRef(basemap);
   const activeIncident = getActiveIncident();
 
-  const getInitialCoordinates = () => {
-    try {
-      const hash = window.location.hash;
-      const match = hash.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*),(\d+\.?\d*)z/);
-      if (match) {
-        return {
-          lng: parseFloat(match[1]),
-          lat: parseFloat(match[2]),
-          zoom: parseFloat(match[3]),
-          fromHash: true,
-        };
-      }
-    } catch {
-      // fallback
-    }
-    // Global / regional overview scale showing international maritime domain
-    return { lng: 15.0, lat: 25.0, zoom: 2.2, fromHash: false };
-  };
-
   // Initialize Map
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
 
-    const initial = getInitialCoordinates();
-
     const map = new maplibregl.Map({
       container: mapContainerRef.current,
       style: MAP_STYLES[basemap] || MAP_STYLES['oceanographic'],
-      center: [initial.lng, initial.lat],
-      zoom: initial.zoom,
+      center: [15.0, 25.0],
+      zoom: 2.5,
+      minZoom: 1.5,
+      maxZoom: 18,
       pitch: 0,
       bearing: 0,
       attributionControl: false,
@@ -310,36 +294,11 @@ export const MapView: React.FC = () => {
       map.keyboard.enable();
       map.boxZoom.enable();
 
-      // If initial view wasn't specifically provided in URL hash, fit all POSEIDON incidents
-      if (!initial.fromHash) {
-        const allIncidents = usePoseidonStore.getState().incidents;
-        if (allIncidents.length > 0) {
-          let minLng = 180, maxLng = -180, minLat = 90, maxLat = -90;
-          allIncidents.forEach((inc) => {
-            const { lng, lat } = inc.coordinates;
-            if (lng < minLng) minLng = lng;
-            if (lng > maxLng) maxLng = lng;
-            if (lat < minLat) minLat = lat;
-            if (lat > maxLat) maxLat = lat;
-          });
-          map.fitBounds([[minLng, minLat], [maxLng, maxLat]], {
-            padding: 80,
-            maxZoom: 5.5,
-            duration: 0,
-          });
-        }
-      }
+      // Configure smooth zooming rate for mouse wheel & trackpad
+      map.scrollZoom.setWheelZoomRate(1 / 300);
+      map.scrollZoom.setZoomRate(1 / 100);
 
       map.resize();
-    });
-
-    // Update URL hash on camera move WITHOUT triggering hashchange event
-    map.on('moveend', () => {
-      const center = map.getCenter();
-      const zoom = map.getZoom();
-      const currentActiveId = usePoseidonStore.getState().activeIncidentId;
-      const newHash = `#/map/@${center.lng.toFixed(2)},${center.lat.toFixed(2)},${zoom.toFixed(1)}z;incident=${currentActiveId}`;
-      window.history.replaceState(null, '', newHash);
     });
 
     return () => {

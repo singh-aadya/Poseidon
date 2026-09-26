@@ -694,37 +694,11 @@ export const usePoseidonStore = create<PoseidonState>((set, get) => ({
   },
 
   fitAllIncidents: () => {
-    const incidents = get().incidents;
-    if (!incidents || incidents.length === 0) return;
-    let minLng = 180;
-    let maxLng = -180;
-    let minLat = 90;
-    let maxLat = -90;
-
-    incidents.forEach((inc) => {
-      const { lng, lat } = inc.coordinates;
-      if (lng < minLng) minLng = lng;
-      if (lng > maxLng) maxLng = lng;
-      if (lat < minLat) minLat = lat;
-      if (lat > maxLat) maxLat = lat;
-    });
-
-    if (minLng === maxLng) {
-      minLng -= 2;
-      maxLng += 2;
-    }
-    if (minLat === maxLat) {
-      minLat -= 2;
-      maxLat += 2;
-    }
-
     set({
       mapFlyTarget: {
-        bounds: [
-          [minLng, minLat],
-          [maxLng, maxLat],
-        ],
-        duration: 1600,
+        center: [15.0, 25.0],
+        zoom: 2.5,
+        duration: 1400,
       },
     });
   },

@@ -16,28 +16,9 @@ export const App: React.FC = () => {
   const {
     leftPanelOpen,
     rightPanelOpen,
-    setActiveIncidentId,
     notificationDrawerOpen,
     setNotificationDrawerOpen,
   } = usePoseidonStore();
-
-  // Listen for initial hash changes (e.g. #/map/@-90.45,27.85,9.6z;incident=PSDN-2026-00142)
-  useEffect(() => {
-    const handleHash = () => {
-      const hash = window.location.hash;
-      const incidentMatch = hash.match(/incident=([A-Za-z0-9_-]+)/);
-      if (incidentMatch && incidentMatch[1]) {
-        const currentActiveId = usePoseidonStore.getState().activeIncidentId;
-        if (incidentMatch[1] !== currentActiveId) {
-          setActiveIncidentId(incidentMatch[1]);
-        }
-      }
-    };
-
-    handleHash();
-    window.addEventListener('hashchange', handleHash);
-    return () => window.removeEventListener('hashchange', handleHash);
-  }, [setActiveIncidentId]);
 
   return (
     <div className="flex h-screen w-screen flex-col overflow-hidden bg-[#F5F7F9] text-gray-900 font-sans">
