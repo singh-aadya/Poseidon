@@ -19,70 +19,82 @@ export const EvidencePanel: React.FC = () => {
     setMapIntelligenceMode,
     setLayer,
     setSelectedCandidateId,
+    demoInvestigation,
   } = usePoseidonStore();
 
   const inc = getActiveIncident();
   const selectedCandidate = getSelectedCandidate();
   const { mode, maskOpacity } = satelliteComparison;
 
+  const isScene2 = demoInvestigation.isActive && demoInvestigation.currentStep === 2;
+  const isScene9 = demoInvestigation.isActive && demoInvestigation.currentStep === 9;
+  const sceneProgress = demoInvestigation.sceneProgress;
+  const visibleCount = isScene9 ? Math.min(9, Math.floor(sceneProgress * 9.8) + 1) : 9;
+
   const evidenceChain = [
     {
       step: 1,
-      title: 'Satellite Sensor Acquisition',
-      finding: 'Sentinel-1A SAR descending pass (Track 135) captures anomaly in MC Block 242.',
+      title: 'Sentinel-1 SAR Acquisition',
+      finding: 'Sentinel-1A C-SAR descending pass (Track 135) captures backscatter dampening anomaly.',
       status: 'VERIFIED',
       action: () => setMapIntelligenceMode('satellite'),
     },
     {
       step: 2,
-      title: 'Radiometric Calibration',
-      finding: 'Converted to Sigma0 NRCS: -24.8 dB backscatter dampening vs -12.1 dB sea clutter.',
-      status: 'CALIBRATED',
-      action: () => setSatelliteComparison({ mode: 'after' }),
-    },
-    {
-      step: 3,
-      title: 'Speckle Filtering & Noise Rejection',
-      finding: 'Enhanced Lee 5×5 spatial filter preserves edges while suppressing speckle variance.',
-      status: 'PROCESSED',
-      action: () => {},
-    },
-    {
-      step: 4,
-      title: 'Deep U-Net Slick Segmentation',
-      finding: 'ResNeXt-101 Attention U-Net detects slick boundary (IoU 0.912, 18.6 km²).',
-      status: 'EXTRACTED',
+      title: 'Slick Detection',
+      finding: 'ResNeXt-101 Attention U-Net detects slick boundary (IoU 0.912, 18.6 km² area).',
+      status: 'DETECTED',
       action: () => setSatelliteComparison({ mode: 'mask' }),
     },
     {
-      step: 5,
-      title: 'Look-Alike Discrimination',
-      finding: 'Biogenic film, upwelling, and low-wind artifacts filtered. False alarm risk < 12%.',
-      status: 'VALIDATED',
+      step: 3,
+      title: 'Slick Characterization',
+      finding: 'Radiometric backscatter (-24.8 dB) validates petroleum crude film dampening.',
+      status: 'CHARACTERIZED',
+      action: () => setSatelliteComparison({ mode: 'after' }),
+    },
+    {
+      step: 4,
+      title: 'Age Estimation',
+      finding: 'Fay spreading and hydrodynamic weathering models calibrate spill release window to 8–14 hours.',
+      status: 'CALIBRATED',
       action: () => setActiveMode('detection'),
+    },
+    {
+      step: 5,
+      title: 'Drift Reconstruction',
+      finding: 'Lagrangian hindcast (HYCOM 0.72 kn currents + GFS 14.2 kn winds) traces 24h reverse advection.',
+      status: 'RECONSTRUCTED',
+      action: () => {
+        setMapIntelligenceMode('analysis');
+        setLayer('breadcrumb_trail', true);
+      },
     },
     {
       step: 6,
-      title: 'Weathering & Age Inversion',
-      finding: 'Fay spreading + hydrodynamic weathering yields estimated spill age of 8–14 hours.',
-      status: 'ESTIMATED',
-      action: () => setActiveMode('detection'),
-    },
-    {
-      step: 7,
-      title: 'Metocean Lagrangian Hindcast',
-      finding: 'HYCOM 0.72 kn currents + GFS 14.2 kn winds reconstruct release point at 27.72°N, 90.62°W.',
-      status: 'RECONSTRUCTED',
+      title: 'Origin Region',
+      finding: 'Particles converge on 4.2 km² source probability region at 27.72°N, 90.62°W (82% confidence).',
+      status: 'CONVERGED',
       action: () => {
         setMapIntelligenceMode('analysis');
         setLayer('origin_probability_region', true);
       },
     },
     {
-      step: 8,
-      title: 'AIS Trajectory Spatio-Temporal Intersect',
-      finding: '12 corridor vessels filtered; MV OCEAN STAR intersects origin with 0.42 km error.',
+      step: 7,
+      title: 'AIS Correlation',
+      finding: '12 corridor vessels evaluated; 3 candidate trajectories intersect release window.',
       status: 'CORRELATED',
+      action: () => {
+        setActiveMode('attribution');
+        setLayer('vessel_tracks', true);
+      },
+    },
+    {
+      step: 8,
+      title: 'Candidate Vessel',
+      finding: 'MV OCEAN STAR attributed at 87% confidence with 18-minute AIS blackout at 23:22 UTC.',
+      status: 'ATTRIBUTED',
       action: () => {
         setActiveMode('attribution');
         setSelectedCandidateId('VESSEL-9481923');
@@ -90,12 +102,11 @@ export const EvidencePanel: React.FC = () => {
     },
     {
       step: 9,
-      title: 'Multi-Factor Attribution Scoring',
-      finding: 'Attribution confidence scored at 87% with confirmed 18-minute AIS blackout.',
-      status: 'ATTRIBUTED',
+      title: 'Forecast',
+      finding: 'Ensemble trajectory models 48h spreading (clearing Chandeleur Sound by 19 km).',
+      status: 'PROJECTED',
       action: () => {
-        setActiveMode('attribution');
-        setSelectedCandidateId('VESSEL-9481923');
+        setActiveMode('forecast');
       },
     },
   ];
@@ -191,6 +202,37 @@ export const EvidencePanel: React.FC = () => {
             className="w-full cursor-pointer h-1.5 bg-gray-200 rounded-sm accent-[#1769AA]"
           />
         </div>
+
+        {/* Slick detected card */}
+        <div className={`rounded-sm border p-2.5 space-y-1.5 transition ${isScene2 ? 'border-[#1769AA] ring-2 ring-[#0284C7]/30 bg-[#F0F7FF]' : 'border-slate-200 bg-slate-50'}`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5 font-bold text-[#17324D] text-xs">
+              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>Slick detected</span>
+            </div>
+            <span className="font-mono text-[10px] font-bold text-[#1769AA] bg-white px-1.5 py-0.5 rounded border border-[#BFDBFE]">
+              {(inc.ml_metrics.detection_confidence * 100).toFixed(1)}% CONF
+            </span>
+          </div>
+          <div className="grid grid-cols-2 gap-2 text-[11px] pt-1 border-t border-slate-200/80">
+            <div>
+              <span className="text-gray-500 text-[10px]">Area:</span>
+              <span className="font-bold text-gray-900 font-mono ml-1">{inc.area_km2} km²</span>
+            </div>
+            <div>
+              <span className="text-gray-500 text-[10px]">Geometry:</span>
+              <span className="font-bold text-gray-900 ml-1">Asymmetric Plume</span>
+            </div>
+            <div>
+              <span className="text-gray-500 text-[10px]">Confidence:</span>
+              <span className="font-bold text-emerald-700 font-mono ml-1">{(inc.confidence * 100).toFixed(1)}%</span>
+            </div>
+            <div>
+              <span className="text-gray-500 text-[10px]">Estimated Age:</span>
+              <span className="font-bold text-amber-700 font-mono ml-1">{inc.estimated_age_mean}h window</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* 3. TECHNICAL MODEL METRICS TABLE */}
@@ -244,15 +286,31 @@ export const EvidencePanel: React.FC = () => {
       </div>
 
       {/* 4. 9-STEP FORENSIC EVIDENCE CHAIN */}
-      <div className="border-b border-[#E5E7EB] pb-3.5 space-y-2">
+      <div className={`border-b border-[#E5E7EB] pb-3.5 space-y-2 transition ${isScene9 ? 'ring-2 ring-emerald-500/40 rounded-sm p-2 bg-emerald-50/20' : ''}`}>
         <div className="flex items-center justify-between text-[11px] font-semibold text-gray-700">
           <span>9-Step forensic evidence chain</span>
-          <span className="text-[10px] font-mono text-[#1769AA] font-bold">Chain verified (9/9)</span>
+          <span className="text-[10px] font-mono text-[#1769AA] font-bold">
+            {isScene9 ? `Assembling chain (${visibleCount}/9)...` : 'Chain verified (9/9)'}
+          </span>
         </div>
+
+        {/* Evidence Dossier Ready Banner for Scene 9 */}
+        {isScene9 && visibleCount >= 9 && (
+          <div className="rounded-sm border border-emerald-300 bg-emerald-50 p-2.5 flex items-center justify-between text-xs text-emerald-900 font-semibold shadow-xs animate-in fade-in">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+              <span>Investigation evidence dossier ready</span>
+            </div>
+            <span className="font-mono text-[10px] text-emerald-700 bg-white px-2 py-0.5 rounded border border-emerald-200">
+              Verified Complete
+            </span>
+          </div>
+        )}
 
         <div className="space-y-1">
           {evidenceChain.map((item) => {
             const isSelected = activeChainStep === item.step;
+            const isStepVerified = !isScene9 || item.step <= visibleCount;
             return (
               <div
                 key={item.step}
@@ -263,7 +321,9 @@ export const EvidencePanel: React.FC = () => {
                 className={`rounded-sm border p-2 cursor-pointer transition select-none ${
                   isSelected
                     ? 'border-l-4 border-l-[#1769AA] border-[#BFDBFE] bg-[#F0F7FF]'
-                    : 'border-slate-200 bg-white hover:bg-slate-50'
+                    : isStepVerified
+                    ? 'border-slate-200 bg-white hover:bg-slate-50'
+                    : 'border-slate-100 bg-slate-50/60 opacity-40'
                 }`}
               >
                 <div className="flex items-center justify-between text-xs">
@@ -271,9 +331,14 @@ export const EvidencePanel: React.FC = () => {
                     <span className="font-mono text-[10px] text-slate-400">0{item.step}</span>
                     <span>{item.title}</span>
                   </div>
-                  <span className="text-[9px] font-mono font-bold text-emerald-700 bg-emerald-50 px-1 py-0.2 rounded border border-emerald-200">
-                    {item.status}
-                  </span>
+                  {isStepVerified ? (
+                    <span className="text-[9px] font-mono font-bold text-emerald-700 bg-emerald-50 px-1 py-0.2 rounded border border-emerald-200 flex items-center gap-0.5">
+                      <CheckCircle2 className="h-2.5 w-2.5" />
+                      <span>{item.status}</span>
+                    </span>
+                  ) : (
+                    <span className="text-[9px] font-mono text-slate-400">PENDING</span>
+                  )}
                 </div>
                 {isSelected && (
                   <p className="mt-1.5 text-[11px] text-slate-600 leading-relaxed border-t border-blue-100 pt-1">

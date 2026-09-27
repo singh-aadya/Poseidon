@@ -20,82 +20,19 @@ export interface FilterState {
   region: string;
 }
 
-export interface DemoStep {
-  stepIndex: number;
-  title: string;
-  subtitle: string;
-  description: string;
-  associatedMode: AppMode;
-  camera: { lng: number; lat: number; zoom: number };
-  highlightElement?: string;
-}
+import { DEMO_SCENES, DemoScene } from '../components/demo/demoScript';
 
-export const DEMO_STEPS: DemoStep[] = [
-  {
-    stepIndex: 1,
-    title: 'Step 1: Satellite anomaly acquisition',
-    subtitle: 'Sentinel-1 C-Band SAR passes over Gulf of Mexico',
-    description: 'Sentinel-1A SAR descending pass captures anomalous backscatter dampening (-24.8 dB) in Mississippi Canyon Lease Block 242. Surface capillary waves are suppressed across 18.6 km².',
-    associatedMode: 'detection',
-    camera: { lng: -90.45, lat: 27.85, zoom: 9.8 },
-  },
-  {
-    stepIndex: 2,
-    title: 'Step 2: Deep U-Net slick segmentation',
-    subtitle: 'Automated pixel-level segmentation mask extraction',
-    description: 'ResNeXt-101 Attention U-Net model segments slick perimeter with 94.2% confidence and 0.912 Intersection-over-Union (IoU), filtering out non-oil water artifacts.',
-    associatedMode: 'detection',
-    camera: { lng: -90.45, lat: 27.85, zoom: 10.4 },
-  },
-  {
-    stepIndex: 3,
-    title: 'Step 3: Slick aging & weathering model',
-    subtitle: 'Atmospheric & hydrodynamic weathering analysis',
-    description: 'Emulsification proxy, film thickness, and ambient temperature (28.4°C) yield an estimated spill age of 8–14 hours (spill release window: 25 Sep 20:00 → 26 Sep 02:00 UTC).',
-    associatedMode: 'detection',
-    camera: { lng: -90.45, lat: 27.85, zoom: 10.4 },
-  },
-  {
-    stepIndex: 4,
-    title: 'Step 4: Metocean forcing & drift hindcast',
-    subtitle: 'Ocean current (0.72 kn NE) & surface wind (14.2 kn SW)',
-    description: 'Lagrangian particle hindcasting traces slick centroid back 12 hours to origin point (27.72° N, 90.62° W) at 23:15 UTC.',
-    associatedMode: 'forecast',
-    camera: { lng: -90.52, lat: 27.80, zoom: 9.9 },
-  },
-  {
-    stepIndex: 5,
-    title: 'Step 5: AIS spatio-temporal reconstruction',
-    subtitle: 'Correlating historical vessel trajectories through spill window',
-    description: 'Querying historical AIS tracks reveals 12 vessels transited within 30 km, of which 5 directly intersected the probable backward release corridor.',
-    associatedMode: 'attribution',
-    camera: { lng: -90.35, lat: 27.82, zoom: 9.2 },
-  },
-  {
-    stepIndex: 6,
-    title: 'Step 6: Source candidate identification',
-    subtitle: 'Filtering target vessels against kinematic anomalies',
-    description: 'Chemical/Oil Tanker MV OCEAN STAR (IMO 9481923) emerges as prime candidate with 87% attribution confidence, exhibiting anomalous deceleration from 14.1 to 8.2 kn.',
-    associatedMode: 'attribution',
-    camera: { lng: -90.0, lat: 27.95, zoom: 8.8 },
-  },
-  {
-    stepIndex: 7,
-    title: 'Step 7: Multi-factor attribution scoring',
-    subtitle: 'Probabilistic evidence breakdown & AIS gap detection',
-    description: 'Multi-criteria scoring calculates 94% spatial proximity, 91% trajectory alignment, and an 18-minute AIS transmission interruption precisely at the origin point.',
-    associatedMode: 'attribution',
-    camera: { lng: -90.2, lat: 27.9, zoom: 9.4 },
-  },
-  {
-    stepIndex: 8,
-    title: 'Step 8: Ensemble drift forecast & shoreline risk',
-    subtitle: '48-hour forward drift projection & uncertainty envelope',
-    description: 'Forward trajectory projects slick northeastward at 0.78–0.90 kn. 48-hour uncertainty cone indicates moderate shoreline impact risk (19 km from coastal barrier islands).',
-    associatedMode: 'forecast',
-    camera: { lng: -90.1, lat: 28.05, zoom: 8.9 },
-  },
-];
+export type DemoStep = DemoScene;
+export const DEMO_STEPS = DEMO_SCENES;
+
+export interface DemoInvestigationState {
+  isActive: boolean;
+  isPlaying: boolean;
+  currentStep: number; // 1-9
+  sceneProgress: number; // 0.0 - 1.0 within current scene
+  speed: 0.5 | 1 | 1.5 | 2;
+  elapsedSeconds: number;
+}
 
 interface PoseidonState {
   incidents: Incident[];
@@ -123,10 +60,7 @@ interface PoseidonState {
   filters: FilterState;
   
   // Demo Mode
-  demoInvestigation: {
-    isActive: boolean;
-    currentStep: number; // 1-8
-  };
+  demoInvestigation: DemoInvestigationState;
   
   // Satellite Split/Compare
   satelliteComparison: {
@@ -201,9 +135,14 @@ interface PoseidonState {
   // Demo Actions
   startDemoInvestigation: () => void;
   stopDemoInvestigation: () => void;
+  pauseDemoInvestigation: () => void;
+  resumeDemoInvestigation: () => void;
+  restartDemoInvestigation: () => void;
   nextDemoStep: () => void;
   prevDemoStep: () => void;
   goToDemoStep: (step: number) => void;
+  setDemoSpeed: (speed: 0.5 | 1 | 1.5 | 2) => void;
+  tickDemo: (deltaSeconds: number) => void;
   
   // Satellite compare actions
   setSatelliteComparison: (partial: Partial<{ mode: 'overlay' | 'split' | 'before' | 'after' | 'mask'; maskOpacity: number }>) => void;
@@ -349,7 +288,11 @@ export const usePoseidonStore = create<PoseidonState>((set, get) => ({
 
   demoInvestigation: {
     isActive: false,
+    isPlaying: false,
     currentStep: 1,
+    sceneProgress: 0,
+    speed: 1,
+    elapsedSeconds: 0,
   },
 
   satelliteComparison: {
@@ -622,30 +565,59 @@ export const usePoseidonStore = create<PoseidonState>((set, get) => ({
     }),
 
   startDemoInvestigation: () => {
-    const step1 = DEMO_STEPS[0];
-    set({
-      activeIncidentId: 'PSDN-2026-00142',
-      selectedCandidateId: 'VESSEL-9481923',
-      activeMode: step1.associatedMode,
+    get().goToDemoStep(1);
+    set((s) => ({
       demoInvestigation: {
+        ...s.demoInvestigation,
         isActive: true,
+        isPlaying: true,
         currentStep: 1,
+        sceneProgress: 0,
+        elapsedSeconds: 0,
       },
-      mapFlyTarget: {
-        center: [step1.camera.lng, step1.camera.lat],
-        zoom: step1.camera.zoom,
-        duration: 1600,
-      },
-    });
+    }));
   },
 
   stopDemoInvestigation: () => {
-    set({
+    set((s) => ({
       demoInvestigation: {
+        ...s.demoInvestigation,
         isActive: false,
-        currentStep: 1,
+        isPlaying: false,
       },
-    });
+    }));
+  },
+
+  pauseDemoInvestigation: () => {
+    set((s) => ({
+      demoInvestigation: {
+        ...s.demoInvestigation,
+        isPlaying: false,
+      },
+    }));
+  },
+
+  resumeDemoInvestigation: () => {
+    set((s) => ({
+      demoInvestigation: {
+        ...s.demoInvestigation,
+        isPlaying: true,
+      },
+    }));
+  },
+
+  restartDemoInvestigation: () => {
+    get().goToDemoStep(1);
+    set((s) => ({
+      demoInvestigation: {
+        ...s.demoInvestigation,
+        isActive: true,
+        isPlaying: true,
+        currentStep: 1,
+        sceneProgress: 0,
+        elapsedSeconds: 0,
+      },
+    }));
   },
 
   nextDemoStep: () => {
@@ -664,22 +636,108 @@ export const usePoseidonStore = create<PoseidonState>((set, get) => ({
     }
   },
 
-  goToDemoStep: (stepNumber: number) => {
-    const step = DEMO_STEPS.find((s) => s.stepIndex === stepNumber);
-    if (!step) return;
-
-    set({
+  setDemoSpeed: (speed: 0.5 | 1 | 1.5 | 2) => {
+    set((s) => ({
       demoInvestigation: {
+        ...s.demoInvestigation,
+        speed,
+      },
+    }));
+  },
+
+  goToDemoStep: (stepNumber: number) => {
+    const scene = DEMO_STEPS.find((s) => s.sceneIndex === stepNumber);
+    if (!scene) return;
+
+    const newLayers = { ...DEFAULT_LAYERS, ...scene.layers };
+
+    set((s) => ({
+      demoInvestigation: {
+        ...s.demoInvestigation,
         isActive: true,
         currentStep: stepNumber,
+        sceneProgress: 0,
+        elapsedSeconds: 0,
       },
-      activeMode: step.associatedMode,
+      activeIncidentId: 'PSDN-2026-00142',
+      activeMode: scene.associatedMode,
+      layers: newLayers,
+      mapIntelligenceMode: scene.mapIntelligenceMode || s.mapIntelligenceMode,
+      selectedForecastHorizon: scene.forecastHorizon || s.selectedForecastHorizon,
+      selectedCandidateId: scene.candidateId !== undefined ? scene.candidateId : s.selectedCandidateId,
+      satelliteComparison: scene.satelliteComparison
+        ? { ...s.satelliteComparison, ...scene.satelliteComparison }
+        : s.satelliteComparison,
+      timeline: {
+        ...s.timeline,
+        currentTime: new Date(scene.timelineTime),
+      },
       mapFlyTarget: {
-        center: [step.camera.lng, step.camera.lat],
-        zoom: step.camera.zoom,
-        duration: 1500,
+        center: scene.camera.center,
+        zoom: scene.camera.zoom,
+        duration: scene.camera.duration || 1400,
       },
-    });
+    }));
+  },
+
+  tickDemo: (deltaSeconds: number) => {
+    const { demoInvestigation } = get();
+    if (!demoInvestigation.isActive || !demoInvestigation.isPlaying) return;
+
+    const currentScene =
+      DEMO_STEPS.find((s) => s.sceneIndex === demoInvestigation.currentStep) || DEMO_STEPS[0];
+    const duration = currentScene.durationSeconds / demoInvestigation.speed;
+    const newElapsed = demoInvestigation.elapsedSeconds + deltaSeconds;
+    const newProgress = Math.min(1, newElapsed / duration);
+
+    // If in Scene 2 (Satellite Analysis), update satelliteComparison dynamically based on progress
+    if (demoInvestigation.currentStep === 2) {
+      if (newProgress < 0.25) {
+        set({ satelliteComparison: { mode: 'before', maskOpacity: 0 } });
+      } else if (newProgress < 0.5) {
+        set({ satelliteComparison: { mode: 'after', maskOpacity: 0 } });
+      } else if (newProgress < 0.75) {
+        const maskOp = Math.min(0.9, (newProgress - 0.5) * 4 * 0.9);
+        set({ satelliteComparison: { mode: 'mask', maskOpacity: maskOp } });
+      } else {
+        set({ satelliteComparison: { mode: 'overlay', maskOpacity: 0.85 } });
+      }
+    }
+
+    // If in Scene 8 (Forecast), advance forecast horizon dynamically (6 -> 12 -> 24 -> 48)
+    if (demoInvestigation.currentStep === 8) {
+      if (newProgress < 0.25 && get().selectedForecastHorizon !== 6) {
+        set({ selectedForecastHorizon: 6 });
+      } else if (newProgress >= 0.25 && newProgress < 0.5 && get().selectedForecastHorizon !== 12) {
+        set({ selectedForecastHorizon: 12 });
+      } else if (newProgress >= 0.5 && newProgress < 0.75 && get().selectedForecastHorizon !== 24) {
+        set({ selectedForecastHorizon: 24 });
+      } else if (newProgress >= 0.75 && get().selectedForecastHorizon !== 48) {
+        set({ selectedForecastHorizon: 48 });
+      }
+    }
+
+    if (newProgress >= 1) {
+      if (demoInvestigation.currentStep < DEMO_STEPS.length) {
+        get().goToDemoStep(demoInvestigation.currentStep + 1);
+      } else {
+        set((s) => ({
+          demoInvestigation: {
+            ...s.demoInvestigation,
+            isPlaying: false,
+            sceneProgress: 1,
+          },
+        }));
+      }
+    } else {
+      set((s) => ({
+        demoInvestigation: {
+          ...s.demoInvestigation,
+          sceneProgress: newProgress,
+          elapsedSeconds: newElapsed,
+        },
+      }));
+    }
   },
 
   setSatelliteComparison: (partial) =>

@@ -20,11 +20,26 @@ export const AttributionPanel: React.FC = () => {
     selectedCandidateId,
     setSelectedCandidateId,
     setVesselDetailModalOpen,
+    demoInvestigation,
+    layers,
+    setLayer,
   } = usePoseidonStore();
 
   const inc = getActiveIncident();
   const selectedCandidate: SourceCandidate =
     inc.candidates.find((c) => c.id === selectedCandidateId) || inc.candidates[0];
+
+  const isScene7 = demoInvestigation.isActive && demoInvestigation.currentStep === 7;
+  const progress = demoInvestigation.sceneProgress;
+
+  const attributionFactors = [
+    { name: 'Spatial proximity', detail: '0.42 km to origin (±1.4 km)', threshold: 0.12 },
+    { name: 'Temporal proximity', detail: '+18 min window offset', threshold: 0.28 },
+    { name: 'Trajectory consistency', detail: '0.94 drift alignment r', threshold: 0.44 },
+    { name: 'Heading consistency', detail: '12° starboard shift', threshold: 0.60 },
+    { name: 'AIS continuity', detail: '18 min blackout logged', threshold: 0.74 },
+    { name: 'Behavioural anomaly', detail: '14.1 → 8.2 kn (-42%)', threshold: 0.88 },
+  ];
 
   return (
     <div className="p-4 space-y-4 text-xs text-gray-800 bg-white">
@@ -167,32 +182,47 @@ export const AttributionPanel: React.FC = () => {
             </table>
           </div>
 
-          {/* Breakdown Score Bars */}
+          {/* 6 Sequential Forensic Attribution Factors */}
           <div className="space-y-1.5 text-xs">
-            <div className="text-[11px] font-semibold text-gray-700 mb-1">
-              Multi-criteria consistency scores
+            <div className="flex items-center justify-between text-[11px] font-semibold text-gray-700 mb-1">
+              <span>Attribution evidence factors</span>
+              {isScene7 && (
+                <span className="text-[10px] font-mono text-[#1769AA] font-bold animate-pulse">
+                  Verifying factors...
+                </span>
+              )}
             </div>
-            {[
-              { label: 'Spatial proximity', val: selectedCandidate.breakdown.spatio_temporal_proximity },
-              { label: 'Trajectory consistency', val: selectedCandidate.breakdown.trajectory_consistency },
-              { label: 'Spill-window overlap', val: selectedCandidate.breakdown.spill_window_overlap },
-              { label: 'Behavioral anomaly', val: selectedCandidate.breakdown.behavior_anomaly },
-              { label: 'Drift compatibility', val: selectedCandidate.breakdown.drift_compatibility },
-              { label: 'AIS continuity', val: selectedCandidate.breakdown.ais_continuity },
-            ].map((metric) => (
-              <div key={metric.label}>
-                <div className="flex justify-between text-[11px] mb-0.5">
-                  <span className="text-gray-600">{metric.label}</span>
-                  <span className="font-semibold text-gray-800 font-mono">{metric.val}%</span>
-                </div>
-                <div className="h-1.5 w-full rounded-xs bg-gray-200 overflow-hidden">
+
+            <div className="space-y-1 rounded-sm border border-slate-200 bg-white p-2">
+              {attributionFactors.map((factor) => {
+                const isVerified = !isScene7 || progress >= factor.threshold;
+                return (
                   <div
-                    className="h-full bg-[#1769AA] rounded-xs"
-                    style={{ width: `${metric.val}%` }}
-                  />
-                </div>
-              </div>
-            ))}
+                    key={factor.name}
+                    className={`flex items-center justify-between py-1 px-1.5 rounded transition-all duration-300 ${
+                      isVerified ? 'bg-slate-50' : 'opacity-40'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5">
+                      {isVerified ? (
+                        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                      ) : (
+                        <span className="h-3.5 w-3.5 rounded-full border border-gray-300 shrink-0 inline-block" />
+                      )}
+                      <span className={`text-[11px] ${isVerified ? 'font-medium text-gray-900' : 'text-gray-500'}`}>
+                        {factor.name}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1 font-mono text-[10px]">
+                      <span className="text-gray-500">{factor.detail}</span>
+                      {isVerified && (
+                        <span className="text-emerald-700 font-bold ml-1">✓</span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
           {/* Behavioral Observations */}
@@ -229,25 +259,45 @@ export const AttributionPanel: React.FC = () => {
             )}
           </div>
 
-          {/* Evidence Supporting Candidate */}
-          <div className="rounded-sm border border-[#E5E7EB] bg-white overflow-hidden">
-            <button
-              onClick={() => setWhyExpanded(!whyExpanded)}
-              className="flex w-full items-center justify-between p-2 text-left text-xs font-semibold text-gray-800 hover:bg-gray-50 transition"
-            >
-              <span>Evidence supporting candidate</span>
-              {whyExpanded ? <ChevronUp className="h-3.5 w-3.5 text-gray-500" /> : <ChevronDown className="h-3.5 w-3.5 text-gray-500" />}
-            </button>
-            {whyExpanded && (
-              <div className="p-2.5 pt-0 space-y-1.5 border-t border-[#F1F5F9] text-xs text-gray-700">
+          {/* Why This Vessel & Connected Attribution Chain */}
+          <div className={`rounded-sm border overflow-hidden transition-all ${isScene7 ? 'border-[#1769AA] ring-2 ring-[#0284C7]/30 bg-[#F0F7FF]' : 'border-[#E5E7EB] bg-white'}`}>
+            <div className="flex items-center justify-between p-2.5 bg-slate-50 border-b border-slate-200">
+              <div className="flex items-center gap-1.5 font-bold text-gray-900 text-xs">
+                <span className="h-2 w-2 rounded-full bg-[#1769AA]" />
+                <span>Why this vessel?</span>
+              </div>
+              <button
+                onClick={() => setLayer('evidence_links', !layers.evidence_links)}
+                className={`px-2 py-0.5 rounded text-[10px] font-medium border transition ${
+                  layers.evidence_links
+                    ? 'bg-[#1769AA] text-white border-[#1769AA]'
+                    : 'bg-white text-gray-700 border-gray-300 hover:bg-slate-100'
+                }`}
+                title="Toggle connected visual chain on map"
+              >
+                {layers.evidence_links ? 'Chain highlighted on map' : 'Highlight chain on map'}
+              </button>
+            </div>
+
+            <div className="p-2.5 space-y-2 text-xs">
+              {/* Visual Chain Ribbon */}
+              <div className="flex items-center justify-between rounded bg-white p-2 border border-slate-200 font-mono text-[10px] text-[#17324D] font-semibold">
+                <span className="text-[#0284C7]">Vessel Trajectory</span>
+                <ArrowRight className="h-3 w-3 text-gray-400" />
+                <span className="text-[#D97706]">Probable Origin</span>
+                <ArrowRight className="h-3 w-3 text-gray-400" />
+                <span className="text-[#DC2626]">Detected Slick</span>
+              </div>
+
+              <div className="space-y-1 text-slate-700 text-[11px] leading-relaxed">
                 {selectedCandidate.why_this_vessel.map((reason, idx) => (
                   <div key={idx} className="flex items-start gap-1.5">
                     <span className="text-[#1769AA] font-bold shrink-0">•</span>
-                    <span className="leading-relaxed">{reason}</span>
+                    <span>{reason}</span>
                   </div>
                 ))}
               </div>
-            )}
+            </div>
           </div>
 
           {/* View Vessel Profile Button */}

@@ -989,6 +989,109 @@ export const MapView: React.FC = () => {
         const src = map.getSource('incident-centroids-source') as GeoJSONSource;
         src.setData(incidentPointsGeoJSON);
       }
+
+      // 10. Evidence Attribution Chain (Vessel Trajectory -> Probable Origin -> Detected Slick)
+      const originPoint = oldestBreadcrumb;
+      const slickPoint = activeIncident.coordinates;
+      const selectedCand =
+        activeIncident.candidates.find((c) => c.id === selectedCandidateId) ||
+        activeIncident.candidates[0];
+      const vesselTrackPoint =
+        selectedCand?.historical_track.find((p) => p.is_in_spill_window) ||
+        selectedCand?.historical_track[3] ||
+        originPoint;
+
+      const chainCoords: [number, number][] = [
+        [vesselTrackPoint.lng, vesselTrackPoint.lat],
+        [originPoint.lng, originPoint.lat],
+        [slickPoint.lng, slickPoint.lat],
+      ];
+
+      const evidenceChainGeoJSON: GeoJSON.FeatureCollection = {
+        type: 'FeatureCollection',
+        features: [
+          {
+            type: 'Feature',
+            properties: { type: 'chain-line' },
+            geometry: {
+              type: 'LineString',
+              coordinates: chainCoords,
+            },
+          },
+          {
+            type: 'Feature',
+            properties: { type: 'chain-node', label: '1. Vessel Trajectory' },
+            geometry: {
+              type: 'Point',
+              coordinates: [vesselTrackPoint.lng, vesselTrackPoint.lat],
+            },
+          },
+          {
+            type: 'Feature',
+            properties: { type: 'chain-node', label: '2. Probable Origin' },
+            geometry: {
+              type: 'Point',
+              coordinates: [originPoint.lng, originPoint.lat],
+            },
+          },
+          {
+            type: 'Feature',
+            properties: { type: 'chain-node', label: '3. Detected Slick' },
+            geometry: {
+              type: 'Point',
+              coordinates: [slickPoint.lng, slickPoint.lat],
+            },
+          },
+        ],
+      };
+
+      if (!map.getSource('evidence-links-source')) {
+        map.addSource('evidence-links-source', {
+          type: 'geojson',
+          data: evidenceChainGeoJSON,
+        });
+
+        map.addLayer({
+          id: 'evidence-links-glow',
+          type: 'line',
+          source: 'evidence-links-source',
+          filter: ['==', ['get', 'type'], 'chain-line'],
+          paint: {
+            'line-color': '#0284C7',
+            'line-width': 8.0,
+            'line-opacity': 0.45,
+            'line-blur': 4,
+          },
+        });
+
+        map.addLayer({
+          id: 'evidence-links-line',
+          type: 'line',
+          source: 'evidence-links-source',
+          filter: ['==', ['get', 'type'], 'chain-line'],
+          paint: {
+            'line-color': '#17324D',
+            'line-width': 2.8,
+            'line-dasharray': [4, 2],
+          },
+        });
+
+        map.addLayer({
+          id: 'evidence-links-nodes',
+          type: 'circle',
+          source: 'evidence-links-source',
+          filter: ['==', ['get', 'type'], 'chain-node'],
+          paint: {
+            'circle-color': '#0284C7',
+            'circle-stroke-color': '#FFFFFF',
+            'circle-stroke-width': 2,
+            'circle-radius': 5.5,
+          },
+        });
+      } else {
+        const src = map.getSource('evidence-links-source') as GeoJSONSource;
+        src.setData(evidenceChainGeoJSON);
+      }
     },
     [incidents, activeIncidentId, activeIncident, selectedCandidateId, selectedForecastHorizon]
   );
@@ -1021,6 +1124,9 @@ export const MapView: React.FC = () => {
     toggle('satellite-footprint-fill', layers.satellite_footprint);
     toggle('satellite-footprint-outline', layers.satellite_footprint);
     toggle('all-ais-dots', layers.all_ais_traffic);
+    toggle('evidence-links-glow', layers.evidence_links);
+    toggle('evidence-links-line', layers.evidence_links);
+    toggle('evidence-links-nodes', layers.evidence_links);
   }, [mapLoaded, setupMapLayers, layers]);
 
   // Render Custom HTML Markers for Incident Labels & Vessels (Government GIS Style)

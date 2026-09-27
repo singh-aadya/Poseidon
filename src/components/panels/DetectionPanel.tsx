@@ -14,11 +14,15 @@ export const DetectionPanel: React.FC = () => {
     setActiveMode,
     setSatelliteComparison,
     setMapIntelligenceMode,
+    demoInvestigation,
   } = usePoseidonStore();
   const inc = getActiveIncident();
 
   const confPercent = Math.round(inc.confidence * 100);
   const lookAlikePercent = Math.round(inc.look_alike.look_alike_probability * 100);
+
+  const isScene1 = demoInvestigation.isActive && demoInvestigation.currentStep === 1;
+  const isScene3 = demoInvestigation.isActive && demoInvestigation.currentStep === 3;
 
   // Age timeline position (0h - 24h)
   const ageMarkerPercent = Math.min(
@@ -29,7 +33,13 @@ export const DetectionPanel: React.FC = () => {
   return (
     <div className="p-4 space-y-4 text-xs text-gray-800 bg-white">
       {/* 1. Incident Overview Header (Visual Dominance: Incident ID, Confidence, Area) */}
-      <div className="border-b border-[#E5E7EB] pb-3.5">
+      <div className={`border-b border-[#E5E7EB] pb-3.5 transition-all ${isScene1 ? 'ring-2 ring-[#B91C1C] rounded-sm p-2 bg-[#FEF2F2]' : ''}`}>
+        {isScene1 && (
+          <div className="mb-2 flex items-center justify-between rounded-xs bg-[#B91C1C] px-2 py-0.5 text-white text-[10px] font-mono font-bold animate-pulse">
+            <span>● NEW SATELLITE DETECTION</span>
+            <span>{inc.area_km2} km² • {confPercent}% CONF</span>
+          </div>
+        )}
         <div className="flex items-center justify-between">
           <span className="text-[11px] font-medium text-gray-500">
             Active incident
@@ -56,7 +66,7 @@ export const DetectionPanel: React.FC = () => {
       </div>
 
       {/* 2. ESTIMATED SPILL AGE (Visual Dominance #3) */}
-      <div className="border-b border-[#E5E7EB] pb-3.5 space-y-2">
+      <div className={`border-b border-[#E5E7EB] pb-3.5 space-y-2 transition-all ${isScene3 ? 'ring-2 ring-[#0284C7] rounded-sm p-2 bg-[#EFF6FF]' : ''}`}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5 text-gray-900 font-semibold text-xs">
             <Clock className="h-3.5 w-3.5 text-[#1769AA]" />
@@ -66,6 +76,12 @@ export const DetectionPanel: React.FC = () => {
             Confidence: 82%
           </span>
         </div>
+
+        {isScene3 && (
+          <div className="rounded-xs bg-[#DBEAFE] border border-[#BFDBFE] p-1.5 text-[11px] text-[#1E40AF]">
+            <strong>Estimated from SAR characteristics and temporal observations</strong>
+          </div>
+        )}
 
         <div className="flex items-baseline justify-between pt-0.5">
           <div className="text-lg font-bold text-[#17324D]">
