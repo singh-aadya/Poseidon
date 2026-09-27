@@ -12,8 +12,11 @@ import { NotificationDrawer } from './components/notifications/NotificationDrawe
 import { CopilotDrawer } from './components/copilot/CopilotDrawer';
 import { IncidentComparisonModal } from './components/panels/IncidentComparisonModal';
 
+import { HistoryAnalyticsWorkspace } from './components/analytics/HistoryAnalyticsWorkspace';
+
 export const App: React.FC = () => {
   const {
+    activeMode,
     leftPanelOpen,
     rightPanelOpen,
     notificationDrawerOpen,
@@ -25,33 +28,41 @@ export const App: React.FC = () => {
       {/* 1. Compact NASA FIRMS-Style Top Navigation */}
       <TopNav />
 
-      {/* 2. Main Middle Workspace: Map + Floating Collapsible Overlays */}
-      <div className="relative flex flex-1 overflow-hidden">
-        {/* Left Collapsible Incident Explorer */}
-        {leftPanelOpen && (
-          <div className="absolute lg:relative z-20 h-full w-80 max-w-[85vw] shrink-0 shadow-2xl transition-all duration-300">
-            <IncidentExplorer />
-          </div>
-        )}
-
-        {/* Dominant WebGL Map Centerpiece */}
+      {/* 2. Main Middle Workspace: History & Analytics or Live Map Workspace */}
+      {activeMode === 'analytics' ? (
         <main className="relative flex-1 h-full w-full overflow-hidden">
-          <MapView />
-
-          {/* Interactive Guided Demo HUD */}
-          <DemoInvestigationModal />
+          <HistoryAnalyticsWorkspace />
         </main>
+      ) : (
+        <>
+          <div className="relative flex flex-1 overflow-hidden">
+            {/* Left Collapsible Incident Explorer */}
+            {leftPanelOpen && (
+              <div className="absolute lg:relative z-20 h-full w-80 max-w-[85vw] shrink-0 shadow-2xl transition-all duration-300">
+                <IncidentExplorer />
+              </div>
+            )}
 
-        {/* Right Collapsible Intelligence Panel */}
-        {rightPanelOpen && (
-          <div className="absolute right-0 top-0 bottom-0 lg:relative z-20 h-full w-96 max-w-[90vw] shrink-0 shadow-2xl transition-all duration-300">
-            <RightIntelligencePanel />
+            {/* Dominant WebGL Map Centerpiece */}
+            <main className="relative flex-1 h-full w-full overflow-hidden">
+              <MapView />
+
+              {/* Interactive Guided Demo HUD */}
+              <DemoInvestigationModal />
+            </main>
+
+            {/* Right Collapsible Intelligence Panel */}
+            {rightPanelOpen && (
+              <div className="absolute right-0 top-0 bottom-0 lg:relative z-20 h-full w-96 max-w-[90vw] shrink-0 shadow-2xl transition-all duration-300">
+                <RightIntelligencePanel />
+              </div>
+            )}
           </div>
-        )}
-      </div>
 
-      {/* 3. Bottom Playback Timeline */}
-      <BottomTimeline />
+          {/* 3. Bottom Playback Timeline */}
+          <BottomTimeline />
+        </>
+      )}
 
       {/* 4. Global Floating Modals & Intelligence Drawers */}
       <SystemStatusModal />

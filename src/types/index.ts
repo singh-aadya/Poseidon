@@ -1,6 +1,7 @@
 export type SeverityLevel = 'LOW' | 'MEDIUM' | 'HIGH';
 export type ConfidenceLevel = 'LOW' | 'MEDIUM' | 'HIGH';
-export type AppMode = 'overview' | 'detection' | 'attribution' | 'forecast' | 'evidence';
+export type IncidentStatus = 'Detected' | 'Under investigation' | 'Resolved';
+export type AppMode = 'overview' | 'detection' | 'attribution' | 'forecast' | 'evidence' | 'analytics';
 
 export interface Coordinates {
   lng: number;
@@ -138,6 +139,7 @@ export interface Incident {
   polygon: SlickPolygon;
   confidence: number; // 0.0 - 1.0
   severity: SeverityLevel;
+  status?: IncidentStatus;
   area_km2: number;
   estimated_age_hours_min: number;
   estimated_age_hours_max: number;

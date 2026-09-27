@@ -40,7 +40,8 @@ export const TopNav: React.FC = () => {
 
   const navModes: { id: AppMode; label: string }[] = [
     { id: 'overview', label: 'Overview' },
-    { id: 'detection', label: 'Detection' },
+    { id: 'detection', label: 'Live Map' },
+    { id: 'analytics', label: 'History & Analytics' },
     { id: 'attribution', label: 'Attribution' },
     { id: 'forecast', label: 'Forecast' },
     { id: 'evidence', label: 'Evidence' },

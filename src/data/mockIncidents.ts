@@ -1,4 +1,5 @@
 import { Incident } from '../types';
+import { HISTORICAL_ARCHIVE_INCIDENTS } from './historicalIncidents';
 import {
   generateOrganicSlickPolygon,
   generateForecastConePolygon,
@@ -1318,4 +1319,5 @@ export const MOCK_INCIDENTS: Incident[] = [
     },
     sar_imagery: createSyntheticSarImages('PSDN-2026-00098', 11.2),
   },
+  ...HISTORICAL_ARCHIVE_INCIDENTS,
 ];
