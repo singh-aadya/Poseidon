@@ -100,3 +100,21 @@
 .gis-table tr:nth-child(even) {
   background-color: #F8FAFC;
 }
+
+/* Hide scrollbars for horizontally scrollable touch rows */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Responsive Table Wrapper */
+.gis-table-container {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+

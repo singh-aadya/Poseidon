@@ -103,7 +103,7 @@ export const HistoryAnalyticsWorkspace: React.FC = () => {
   };
 
   return (
-    <div className="relative flex h-full w-full flex-col overflow-hidden bg-[#F5F7F9] text-gray-900 font-sans">
+    <div className="relative flex h-full w-full max-w-full flex-col overflow-hidden bg-[#F5F7F9] text-gray-900 font-sans box-border min-w-0">
       {/* 1. Page Header */}
       <AnalyticsHeader
         totalArchiveCount={incidents.length}
@@ -120,7 +120,7 @@ export const HistoryAnalyticsWorkspace: React.FC = () => {
       />
 
       {/* 3. Main Analytical Content (Scrollable Container) */}
-      <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+      <div className="flex-1 overflow-y-auto px-3 sm:px-6 py-4 sm:py-5 space-y-6 w-full max-w-full box-border min-w-0">
         {/* KPI Strip */}
         <AnalyticsKpiStrip metrics={kpiMetrics} />
 

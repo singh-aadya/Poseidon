@@ -11,9 +11,13 @@ import {
   Bot,
   GitCompare,
   History,
+  Lock,
+  Shield,
+  Settings,
 } from 'lucide-react';
 import { usePoseidonStore } from '../../store/usePoseidonStore';
 import { AppMode } from '../../types';
+import { RoleSwitcher } from './RoleSwitcher';
 
 export const TopNav: React.FC = () => {
   const {
@@ -26,31 +30,34 @@ export const TopNav: React.FC = () => {
     startDemoInvestigation,
     demoInvestigation,
     setSystemStatusOpen,
-    notifications,
-    toggleNotificationDrawer,
+    alerts,
+    setAlertsCenterOpen,
     toggleCopilot,
     isReplayMode,
     toggleReplayMode,
     incidents,
     activeIncidentId,
     setComparedIncidentIds,
+    currentUser,
+    setAdminModalOpen,
   } = usePoseidonStore();
 
-  const unreadAlerts = notifications.filter((n) => !n.read).length;
+  const unreadAlerts = alerts.filter((a) => !a.read).length;
 
-  const navModes: { id: AppMode; label: string }[] = [
+  const navModes: { id: AppMode; label: string; operationalOnly?: boolean }[] = [
     { id: 'overview', label: 'Overview' },
     { id: 'detection', label: 'Live Map' },
     { id: 'analytics', label: 'History & Analytics' },
-    { id: 'attribution', label: 'Attribution' },
-    { id: 'forecast', label: 'Forecast' },
-    { id: 'evidence', label: 'Evidence' },
+    { id: 'attribution', label: 'Attribution', operationalOnly: true },
+    { id: 'forecast', label: 'Forecast', operationalOnly: true },
+    { id: 'evidence', label: 'Evidence', operationalOnly: true },
+    { id: 'public-info', label: 'Public Info' },
   ];
 
   return (
-    <header className="relative z-30 flex h-12 w-full items-center justify-between border-b border-[#0F2538] bg-[#17324D] px-3.5 text-white select-none shadow-sm">
+    <header className="relative z-30 flex h-12 w-full max-w-full items-center justify-between border-b border-[#0F2538] bg-[#17324D] px-2 sm:px-3.5 text-white select-none shadow-sm box-border min-w-0">
       {/* Left: Program Branding & Sidebar Toggle */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
         <button
           onClick={toggleLeftPanel}
           title={leftPanelOpen ? 'Collapse incident list' : 'Expand incident list'}
@@ -59,7 +66,7 @@ export const TopNav: React.FC = () => {
           {leftPanelOpen ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeftOpen className="h-4 w-4" />}
         </button>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2">
           {/* Institutional Maritime Emblem: Clean Flat Globe */}
           <div className="flex h-7 w-7 items-center justify-center rounded-sm bg-[#102438] border border-[#2F4F70] text-[#93C5FD]">
             <Globe2 className="h-4 w-4" />
@@ -70,7 +77,7 @@ export const TopNav: React.FC = () => {
               <span className="font-sans text-base font-bold tracking-tight text-white">
                 POSEIDON
               </span>
-              <span className="text-xs text-slate-300 font-normal">
+              <span className="hidden sm:inline text-xs text-slate-300 font-normal">
                 Marine Oil Spill Monitoring System
               </span>
             </div>
@@ -79,32 +86,42 @@ export const TopNav: React.FC = () => {
       </div>
 
       {/* Center: Institutional Navigation Tabs */}
-      <nav className="flex items-center space-x-1">
+      <nav className="flex items-center space-x-0.5 sm:space-x-1 overflow-x-auto no-scrollbar min-w-0 shrink">
         {navModes.map((mode) => {
           const isActive = activeMode === mode.id;
+          const isRestrictedForPublic = currentUser.role === 'public' && mode.operationalOnly;
+
           return (
             <button
               key={mode.id}
               onClick={() => setActiveMode(mode.id)}
-              className={`relative px-3.5 py-1.5 text-xs transition rounded-t-sm ${
+              title={
+                isRestrictedForPublic
+                  ? `${mode.label} (Operational investigation view - sensitive attribution masked in public mode)`
+                  : mode.label
+              }
+              className={`relative flex items-center gap-1 px-2.5 sm:px-3.5 py-1.5 text-xs transition rounded-t-sm whitespace-nowrap shrink-0 ${
                 isActive
                   ? 'bg-[#0F2538] text-white font-semibold border-b-2 border-white'
                   : 'text-slate-200 hover:bg-[#1F4367] hover:text-white font-medium'
               }`}
             >
-              {mode.label}
+              <span>{mode.label}</span>
+              {isRestrictedForPublic && (
+                <Lock className="h-2.5 w-2.5 text-slate-400 opacity-80" />
+              )}
             </button>
           );
         })}
       </nav>
 
-      {/* Right: Operational Telemetry Status, Demo Trigger, Panel Toggle */}
-      <div className="flex items-center gap-2">
+      {/* Right: Operational Telemetry Status, Demo Trigger, Role Switcher, Panel Toggle */}
+      <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
         {/* Historical Replay Mode Toggle */}
         <button
           onClick={toggleReplayMode}
           title={isReplayMode ? 'Return to live real-time ingestion mode' : 'Switch to historical incident replay'}
-          className={`flex items-center gap-1 rounded-sm px-2 py-1 text-xs font-semibold transition border ${
+          className={`hidden sm:flex items-center gap-1 rounded-sm px-2 py-1 text-xs font-semibold transition border ${
             isReplayMode
               ? 'bg-amber-600 border-amber-500 text-white shadow-xs'
               : 'border-[#2F4F70] bg-[#102438] text-slate-300 hover:text-white hover:bg-[#163350]'
@@ -121,7 +138,7 @@ export const TopNav: React.FC = () => {
             setComparedIncidentIds([activeIncidentId, other.id]);
           }}
           title="Compare incidents side-by-side"
-          className="flex items-center gap-1 rounded-sm border border-[#2F4F70] bg-[#102438] px-2 py-1 text-xs font-semibold text-slate-300 hover:text-white hover:bg-[#163350] transition"
+          className="hidden md:flex items-center gap-1 rounded-sm border border-[#2F4F70] bg-[#102438] px-2 py-1 text-xs font-semibold text-slate-300 hover:text-white hover:bg-[#163350] transition"
         >
           <GitCompare className="h-3 w-3" />
           <span className="hidden xl:inline">Compare</span>
@@ -129,33 +146,48 @@ export const TopNav: React.FC = () => {
 
         {/* Alerts Center Trigger */}
         <button
-          onClick={toggleNotificationDrawer}
-          title="System alerts & telemetry advisories"
+          onClick={() => setAlertsCenterOpen(true)}
+          title="Operational Alerts Center & Incident Tasking"
           className="relative flex items-center gap-1.5 rounded-sm border border-[#2F4F70] bg-[#102438] px-2 py-1 text-xs font-semibold text-slate-300 hover:text-white hover:bg-[#163350] transition"
         >
           <Bell className="h-3.5 w-3.5" />
           <span className="hidden lg:inline">Alerts</span>
           {unreadAlerts > 0 && (
-            <span className="rounded-full bg-red-600 px-1 py-0.2 font-mono text-[9px] font-bold text-white leading-none">
-              0{unreadAlerts}
+            <span className="rounded-full bg-[#B42318] px-1 py-0.2 font-mono text-[9px] font-bold text-white leading-none">
+              {unreadAlerts < 10 ? `0${unreadAlerts}` : unreadAlerts}
             </span>
           )}
         </button>
+
+        {/* Role-Based Access Control Switcher */}
+        <RoleSwitcher />
+
+        {/* Admin Shortcut for Admin Role */}
+        {currentUser.role === 'admin' && (
+          <button
+            onClick={() => setAdminModalOpen(true)}
+            title="Administration & Audit Center"
+            className="hidden lg:flex items-center gap-1 rounded-sm border border-purple-600/70 bg-purple-950/70 px-2 py-1 text-xs font-semibold text-purple-200 hover:bg-purple-900 transition"
+          >
+            <Settings className="h-3 w-3 text-purple-300" />
+            <span className="hidden xl:inline">Admin</span>
+          </button>
+        )}
 
         {/* Maritime Intelligence Copilot Trigger */}
         <button
           onClick={toggleCopilot}
           title="POSEIDON Maritime Intelligence Copilot"
-          className="flex items-center gap-1 rounded-sm border border-cyan-600 bg-cyan-900/90 px-2 py-1 text-xs font-semibold text-cyan-200 hover:bg-cyan-800 hover:text-white transition shadow-2xs"
+          className="hidden sm:flex items-center gap-1 rounded-sm border border-cyan-600 bg-cyan-900/90 px-2 py-1 text-xs font-semibold text-cyan-200 hover:bg-cyan-800 hover:text-white transition shadow-2xs"
         >
           <Bot className="h-3.5 w-3.5 text-cyan-300" />
-          <span className="hidden sm:inline">Copilot</span>
+          <span className="hidden xl:inline">Copilot</span>
         </button>
 
         {/* Run Demonstration Action Button */}
         <button
           onClick={startDemoInvestigation}
-          className={`flex items-center gap-1 rounded-sm px-2.5 py-1 text-xs font-medium transition border ${
+          className={`hidden sm:flex items-center gap-1 rounded-sm px-2.5 py-1 text-xs font-medium transition border ${
             demoInvestigation.isActive
               ? 'bg-[#C47A00] border-[#995E00] text-white'
               : 'bg-[#1769AA] border-[#13588F] text-white hover:bg-[#145C96]'

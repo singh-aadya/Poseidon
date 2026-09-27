@@ -10,8 +10,21 @@ import {
   MapIntelligenceMode,
   NotificationItem,
   CopilotMessage,
+  UserProfile,
+  OperationalAlert,
+  IncidentAssignment,
+  AuditLogEntry,
+  AlertRuleConfig,
+  ResponseWorkflowStage,
 } from '../types';
 import { MOCK_INCIDENTS } from '../data/mockIncidents';
+import {
+  MOCK_USERS,
+  INITIAL_OPERATIONAL_ALERTS,
+  INITIAL_ASSIGNMENTS,
+  INITIAL_AUDIT_LOGS,
+  INITIAL_ALERT_RULES,
+} from '../data/mockRbacData';
 
 export interface FilterState {
   timePreset: 'all' | '24h' | '48h' | '7d';
@@ -156,6 +169,44 @@ interface PoseidonState {
   getActiveIncident: () => Incident;
   getSelectedCandidate: () => any | null;
   getFilteredIncidents: () => Incident[];
+
+  // RBAC & User Session
+  currentUser: UserProfile;
+  users: UserProfile[];
+  setCurrentUser: (user: UserProfile) => void;
+
+  // Alerts Center
+  alerts: OperationalAlert[];
+  alertsCenterOpen: boolean;
+  setAlertsCenterOpen: (open: boolean) => void;
+  toggleAlertsCenter: () => void;
+  acknowledgeAlert: (alertId: string, notes?: string) => void;
+  resolveAlert: (alertId: string, notes?: string) => void;
+  assignAlert: (alertId: string, team: string, user?: string) => void;
+  markAlertRead: (alertId: string) => void;
+  markAllAlertsRead: () => void;
+
+  // Incident Assignment & Response Workflow
+  assignments: Record<string, IncidentAssignment>;
+  assignIncidentModalIncidentId: string | null;
+  setAssignIncidentModalIncidentId: (id: string | null) => void;
+  assignIncident: (
+    incidentId: string,
+    team: string,
+    responder: string,
+    escalationLevel?: 'MONITORING' | 'ADVISORY' | 'CRITICAL RESPONSE',
+    note?: string
+  ) => void;
+  addIncidentResponseNote: (incidentId: string, note: string) => void;
+  updateIncidentWorkflowStage: (incidentId: string, stage: ResponseWorkflowStage) => void;
+
+  // Audit Trail & Admin Modal
+  auditLogs: AuditLogEntry[];
+  addAuditLog: (entry: Omit<AuditLogEntry, 'id' | 'timestamp'>) => void;
+  alertRules: AlertRuleConfig[];
+  toggleAlertRule: (ruleId: string) => void;
+  adminModalOpen: boolean;
+  setAdminModalOpen: (open: boolean) => void;
 }
 
 const DEFAULT_LAYERS: LayerVisibilityState = {
@@ -265,6 +316,23 @@ export const usePoseidonStore = create<PoseidonState>((set, get) => ({
   systemStatusOpen: false,
   vesselDetailModalOpen: false,
   notificationDrawerOpen: false,
+
+  // RBAC & User Session
+  currentUser: MOCK_USERS[1], // Default: Dr. Elena Vance (Lead Analyst)
+  users: MOCK_USERS,
+
+  // Alerts Center
+  alerts: INITIAL_OPERATIONAL_ALERTS,
+  alertsCenterOpen: false,
+
+  // Incident Assignment & Response Workflow
+  assignments: INITIAL_ASSIGNMENTS,
+  assignIncidentModalIncidentId: null,
+
+  // Audit Trail & Admin Modal
+  auditLogs: INITIAL_AUDIT_LOGS,
+  alertRules: INITIAL_ALERT_RULES,
+  adminModalOpen: false,
 
   basemap: 'oceanographic',
   layers: DEFAULT_LAYERS,
@@ -815,7 +883,328 @@ export const usePoseidonStore = create<PoseidonState>((set, get) => ({
         return false;
       }
 
+      // Public role access control: only show approved/verified incidents
+      if (get().currentUser.role === 'public' && inc.confidence < 0.70) {
+        return false;
+      }
+
       return true;
     });
   },
+
+  // RBAC & User Session
+  setCurrentUser: (user: UserProfile) => {
+    const prev = get().currentUser;
+    set({ currentUser: user });
+    get().addAuditLog({
+      actor: {
+        name: user.name,
+        role: user.role,
+        team: user.team,
+      },
+      action: 'Switched User Session',
+      details: `Switched active persona from ${prev.name} (${prev.role}) to ${user.name} (${user.role}).`,
+      previousValue: prev.role,
+      newValue: user.role,
+    });
+  },
+
+  // Alerts Center
+  setAlertsCenterOpen: (open: boolean) => set({ alertsCenterOpen: open }),
+  toggleAlertsCenter: () => set((state) => ({ alertsCenterOpen: !state.alertsCenterOpen })),
+
+  acknowledgeAlert: (alertId: string, notes?: string) => {
+    const { alerts, currentUser, addAuditLog } = get();
+    const alert = alerts.find((a) => a.id === alertId);
+    if (!alert) return;
+
+    const now = new Date().toISOString();
+    const updated = alerts.map((a) => {
+      if (a.id === alertId) {
+        return {
+          ...a,
+          status: 'Acknowledged' as const,
+          acknowledgedAt: now,
+          acknowledgedBy: currentUser.name,
+          notes: notes ? `${a.notes ? a.notes + ' | ' : ''}${notes}` : a.notes,
+          read: true,
+        };
+      }
+      return a;
+    });
+
+    set({ alerts: updated });
+    addAuditLog({
+      actor: {
+        name: currentUser.name,
+        role: currentUser.role,
+        team: currentUser.team,
+      },
+      action: 'Acknowledged Operational Alert',
+      incidentId: alert.incidentId,
+      details: `Acknowledged alert ${alert.id} (${alert.type}) for ${alert.incidentId}.${notes ? ' Note: ' + notes : ''}`,
+      previousValue: `Status: ${alert.status}`,
+      newValue: 'Status: Acknowledged',
+    });
+  },
+
+  resolveAlert: (alertId: string, notes?: string) => {
+    const { alerts, currentUser, addAuditLog } = get();
+    const alert = alerts.find((a) => a.id === alertId);
+    if (!alert) return;
+
+    const now = new Date().toISOString();
+    const updated = alerts.map((a) => {
+      if (a.id === alertId) {
+        return {
+          ...a,
+          status: 'Resolved' as const,
+          resolvedAt: now,
+          resolvedBy: currentUser.name,
+          notes: notes ? `${a.notes ? a.notes + ' | ' : ''}${notes}` : a.notes,
+          read: true,
+        };
+      }
+      return a;
+    });
+
+    set({ alerts: updated });
+    addAuditLog({
+      actor: {
+        name: currentUser.name,
+        role: currentUser.role,
+        team: currentUser.team,
+      },
+      action: 'Resolved Operational Alert',
+      incidentId: alert.incidentId,
+      details: `Resolved alert ${alert.id} (${alert.type}) for ${alert.incidentId}.${notes ? ' Note: ' + notes : ''}`,
+      previousValue: `Status: ${alert.status}`,
+      newValue: 'Status: Resolved',
+    });
+  },
+
+  assignAlert: (alertId: string, team: string, user?: string) => {
+    const { alerts, currentUser, addAuditLog } = get();
+    const alert = alerts.find((a) => a.id === alertId);
+    if (!alert) return;
+
+    const updated = alerts.map((a) => {
+      if (a.id === alertId) {
+        return {
+          ...a,
+          assignedTeam: team,
+          assignedUser: user || a.assignedUser,
+          read: true,
+        };
+      }
+      return a;
+    });
+
+    set({ alerts: updated });
+    addAuditLog({
+      actor: {
+        name: currentUser.name,
+        role: currentUser.role,
+        team: currentUser.team,
+      },
+      action: 'Reassigned Alert Team',
+      incidentId: alert.incidentId,
+      details: `Reassigned alert ${alert.id} to ${team}${user ? ' (' + user + ')' : ''}.`,
+      previousValue: `Assigned: ${alert.assignedTeam}`,
+      newValue: `Assigned: ${team}`,
+    });
+  },
+
+  markAlertRead: (alertId: string) => {
+    set((state) => ({
+      alerts: state.alerts.map((a) => (a.id === alertId ? { ...a, read: true } : a)),
+    }));
+  },
+
+  markAllAlertsRead: () => {
+    set((state) => ({
+      alerts: state.alerts.map((a) => ({ ...a, read: true })),
+    }));
+  },
+
+  // Incident Assignment & Response Workflow
+  setAssignIncidentModalIncidentId: (id: string | null) => set({ assignIncidentModalIncidentId: id }),
+
+  assignIncident: (
+    incidentId: string,
+    team: string,
+    responder: string,
+    escalationLevel = 'ADVISORY' as const,
+    note?: string
+  ) => {
+    const { assignments, currentUser, addAuditLog } = get();
+    const now = new Date().toISOString();
+    const existing = assignments[incidentId];
+
+    const updatedAssignment: IncidentAssignment = {
+      incidentId,
+      assignedTeam: team,
+      assignedResponder: responder,
+      assignedBy: currentUser.name,
+      assignedAt: now,
+      escalationLevel,
+      workflowStage: existing ? existing.workflowStage : 'Assigned',
+      acknowledgedAt: existing?.acknowledgedAt,
+      acknowledgedBy: existing?.acknowledgedBy,
+      responseNotes: existing ? [...existing.responseNotes] : [],
+    };
+
+    if (note) {
+      updatedAssignment.responseNotes.push({
+        id: `note-${Date.now()}`,
+        author: currentUser.name,
+        role: currentUser.role,
+        timestamp: now,
+        content: note,
+      });
+    }
+
+    set({
+      assignments: {
+        ...assignments,
+        [incidentId]: updatedAssignment,
+      },
+    });
+
+    addAuditLog({
+      actor: {
+        name: currentUser.name,
+        role: currentUser.role,
+        team: currentUser.team,
+      },
+      action: 'Assigned Incident Response',
+      incidentId,
+      details: `Assigned jurisdiction to ${team} (${responder}) with ${escalationLevel} protocol.`,
+      newValue: `${team} / ${responder}`,
+    });
+  },
+
+  addIncidentResponseNote: (incidentId: string, note: string) => {
+    const { assignments, currentUser, addAuditLog } = get();
+    const now = new Date().toISOString();
+    const existing = assignments[incidentId] || {
+      incidentId,
+      assignedTeam: currentUser.team,
+      assignedResponder: currentUser.name,
+      assignedBy: currentUser.name,
+      assignedAt: now,
+      escalationLevel: 'ADVISORY' as const,
+      workflowStage: 'Investigating' as const,
+      responseNotes: [],
+    };
+
+    const newNote = {
+      id: `note-${Date.now()}`,
+      author: currentUser.name,
+      role: currentUser.role,
+      timestamp: now,
+      content: note,
+    };
+
+    set({
+      assignments: {
+        ...assignments,
+        [incidentId]: {
+          ...existing,
+          responseNotes: [newNote, ...existing.responseNotes],
+        },
+      },
+    });
+
+    addAuditLog({
+      actor: {
+        name: currentUser.name,
+        role: currentUser.role,
+        team: currentUser.team,
+      },
+      action: 'Logged Response Observation',
+      incidentId,
+      details: `Logged note: "${note.length > 60 ? note.slice(0, 57) + '...' : note}"`,
+    });
+  },
+
+  updateIncidentWorkflowStage: (incidentId: string, stage: ResponseWorkflowStage) => {
+    const { assignments, currentUser, addAuditLog } = get();
+    const now = new Date().toISOString();
+    const existing = assignments[incidentId] || {
+      incidentId,
+      assignedTeam: currentUser.team,
+      assignedResponder: currentUser.name,
+      assignedBy: currentUser.name,
+      assignedAt: now,
+      escalationLevel: 'ADVISORY' as const,
+      workflowStage: stage,
+      responseNotes: [],
+    };
+
+    const prevStage = existing.workflowStage;
+    set({
+      assignments: {
+        ...assignments,
+        [incidentId]: {
+          ...existing,
+          workflowStage: stage,
+          acknowledgedAt: stage === 'Acknowledged' ? now : existing.acknowledgedAt,
+          acknowledgedBy: stage === 'Acknowledged' ? currentUser.name : existing.acknowledgedBy,
+          resolvedAt: stage === 'Resolved' ? now : existing.resolvedAt,
+          resolvedBy: stage === 'Resolved' ? currentUser.name : existing.resolvedBy,
+        },
+      },
+    });
+
+    addAuditLog({
+      actor: {
+        name: currentUser.name,
+        role: currentUser.role,
+        team: currentUser.team,
+      },
+      action: 'Updated Workflow Stage',
+      incidentId,
+      details: `Advanced response workflow from ${prevStage} to ${stage}.`,
+      previousValue: prevStage,
+      newValue: stage,
+    });
+  },
+
+  // Audit Trail & Admin Modal
+  addAuditLog: (entry) => {
+    const newEntry: AuditLogEntry = {
+      id: `AUD-${Date.now().toString().slice(-5)}`,
+      timestamp: new Date().toISOString(),
+      ...entry,
+    };
+    set((state) => ({
+      auditLogs: [newEntry, ...state.auditLogs.slice(0, 99)],
+    }));
+  },
+
+  toggleAlertRule: (ruleId: string) => {
+    const { currentUser, addAuditLog, alertRules } = get();
+    const rule = alertRules.find((r) => r.id === ruleId);
+    if (!rule) return;
+
+    const newStatus = !rule.enabled;
+    set({
+      alertRules: alertRules.map((r) => (r.id === ruleId ? { ...r, enabled: newStatus } : r)),
+    });
+
+    addAuditLog({
+      actor: {
+        name: currentUser.name,
+        role: currentUser.role,
+        team: currentUser.team,
+      },
+      action: 'Modified Alert Rule',
+      details: `${newStatus ? 'Enabled' : 'Disabled'} automated alert rule "${rule.name}".`,
+      previousValue: `Enabled: ${rule.enabled}`,
+      newValue: `Enabled: ${newStatus}`,
+    });
+  },
+
+  setAdminModalOpen: (open: boolean) => set({ adminModalOpen: open }),
 }));

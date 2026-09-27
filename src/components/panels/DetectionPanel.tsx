@@ -31,7 +31,7 @@ export const DetectionPanel: React.FC = () => {
   );
 
   return (
-    <div className="p-4 space-y-4 text-xs text-gray-800 bg-white">
+    <div className="p-4 space-y-4 text-xs text-gray-800 bg-white w-full max-w-full box-border min-w-0">
       {/* 1. Incident Overview Header (Visual Dominance: Incident ID, Confidence, Area) */}
       <div className={`border-b border-[#E5E7EB] pb-3.5 transition-all ${isScene1 ? 'ring-2 ring-[#B91C1C] rounded-sm p-2 bg-[#FEF2F2]' : ''}`}>
         {isScene1 && (
@@ -139,38 +139,40 @@ export const DetectionPanel: React.FC = () => {
           Spill characteristics
         </div>
 
-        <table className="gis-table text-xs">
-          <tbody>
-            <tr>
-              <td className="py-1 px-2 text-gray-600">Area</td>
-              <td className="py-1 px-2 font-bold text-right text-gray-900 font-mono">{inc.area_km2.toFixed(1)} km²</td>
-            </tr>
-            <tr>
-              <td className="py-1 px-2 text-gray-600">Relative thickness</td>
-              <td className="py-1 px-2 font-medium text-right text-gray-800">Sheen / Moderate</td>
-            </tr>
-            <tr>
-              <td className="py-1 px-2 text-gray-600">Emulsification</td>
-              <td className="py-1 px-2 font-medium text-right text-gray-800">{inc.signature.emulsification_proxy}</td>
-            </tr>
-            <tr>
-              <td className="py-1 px-2 text-gray-600">SAR contrast</td>
-              <td className="py-1 px-2 font-medium text-right text-gray-800 font-mono">{inc.signature.sar_contrast_ratio.toFixed(1)} dB</td>
-            </tr>
-            <tr>
-              <td className="py-1 px-2 text-gray-600">Drift direction</td>
-              <td className="py-1 px-2 font-medium text-right text-gray-800 font-mono">{inc.signature.drift_direction_deg}° @ {inc.signature.drift_speed_knots} kn</td>
-            </tr>
-            <tr>
-              <td className="py-1 px-2 text-gray-600">Ambient wind</td>
-              <td className="py-1 px-2 font-medium text-right text-gray-800 font-mono">{inc.signature.ambient_wind_knots} kn</td>
-            </tr>
-            <tr>
-              <td className="py-1 px-2 text-gray-600">Ambient current</td>
-              <td className="py-1 px-2 font-medium text-right text-gray-800 font-mono">{inc.signature.ambient_current_knots} kn</td>
-            </tr>
-          </tbody>
-        </table>
+        <div className="gis-table-container w-full max-w-full overflow-x-auto">
+          <table className="gis-table text-xs w-full">
+            <tbody>
+              <tr>
+                <td className="py-1 px-2 text-gray-600">Area</td>
+                <td className="py-1 px-2 font-bold text-right text-gray-900 font-mono">{inc.area_km2.toFixed(1)} km²</td>
+              </tr>
+              <tr>
+                <td className="py-1 px-2 text-gray-600">Relative thickness</td>
+                <td className="py-1 px-2 font-medium text-right text-gray-800">Sheen / Moderate</td>
+              </tr>
+              <tr>
+                <td className="py-1 px-2 text-gray-600">Emulsification</td>
+                <td className="py-1 px-2 font-medium text-right text-gray-800">{inc.signature.emulsification_proxy}</td>
+              </tr>
+              <tr>
+                <td className="py-1 px-2 text-gray-600">SAR contrast</td>
+                <td className="py-1 px-2 font-medium text-right text-gray-800 font-mono">{inc.signature.sar_contrast_ratio.toFixed(1)} dB</td>
+              </tr>
+              <tr>
+                <td className="py-1 px-2 text-gray-600">Drift direction</td>
+                <td className="py-1 px-2 font-medium text-right text-gray-800 font-mono">{inc.signature.drift_direction_deg}° @ {inc.signature.drift_speed_knots} kn</td>
+              </tr>
+              <tr>
+                <td className="py-1 px-2 text-gray-600">Ambient wind</td>
+                <td className="py-1 px-2 font-medium text-right text-gray-800 font-mono">{inc.signature.ambient_wind_knots} kn</td>
+              </tr>
+              <tr>
+                <td className="py-1 px-2 text-gray-600">Ambient current</td>
+                <td className="py-1 px-2 font-medium text-right text-gray-800 font-mono">{inc.signature.ambient_current_knots} kn</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
         {/* 3-Step Satellite Verification Workflow */}
         <div className="pt-2">
@@ -294,29 +296,29 @@ export const DetectionPanel: React.FC = () => {
       </div>
 
       {/* Quick Navigation Action Buttons */}
-      <div className="grid grid-cols-3 gap-2 pt-1">
+      <div className="grid grid-cols-3 gap-1 sm:gap-2 pt-1">
         <button
           onClick={() => setActiveMode('attribution')}
-          className="flex flex-col items-center justify-center rounded-sm border border-[#D1D5DB] bg-white p-2 text-gray-800 hover:bg-[#EFF6FF] hover:border-[#BFDBFE] transition font-medium text-xs shadow-2xs"
+          className="flex flex-col items-center justify-center rounded-sm border border-[#D1D5DB] bg-white p-1.5 sm:p-2 text-gray-800 hover:bg-[#EFF6FF] hover:border-[#BFDBFE] transition font-medium text-xs shadow-2xs min-w-0"
         >
-          <span className="font-semibold">Attribution</span>
-          <span className="text-[10px] text-gray-500">Source candidates</span>
+          <span className="font-semibold truncate w-full text-center">Attribution</span>
+          <span className="text-[10px] text-gray-500 truncate w-full text-center">Candidates</span>
         </button>
 
         <button
           onClick={() => setActiveMode('forecast')}
-          className="flex flex-col items-center justify-center rounded-sm border border-[#D1D5DB] bg-white p-2 text-gray-800 hover:bg-[#EFF6FF] hover:border-[#BFDBFE] transition font-medium text-xs shadow-2xs"
+          className="flex flex-col items-center justify-center rounded-sm border border-[#D1D5DB] bg-white p-1.5 sm:p-2 text-gray-800 hover:bg-[#EFF6FF] hover:border-[#BFDBFE] transition font-medium text-xs shadow-2xs min-w-0"
         >
-          <span className="font-semibold">Forecast</span>
-          <span className="text-[10px] text-gray-500">Drift trajectory</span>
+          <span className="font-semibold truncate w-full text-center">Forecast</span>
+          <span className="text-[10px] text-gray-500 truncate w-full text-center">Trajectory</span>
         </button>
 
         <button
           onClick={() => setActiveMode('evidence')}
-          className="flex flex-col items-center justify-center rounded-sm border border-[#D1D5DB] bg-white p-2 text-gray-800 hover:bg-[#EFF6FF] hover:border-[#BFDBFE] transition font-medium text-xs shadow-2xs"
+          className="flex flex-col items-center justify-center rounded-sm border border-[#D1D5DB] bg-white p-1.5 sm:p-2 text-gray-800 hover:bg-[#EFF6FF] hover:border-[#BFDBFE] transition font-medium text-xs shadow-2xs min-w-0"
         >
-          <span className="font-semibold">Evidence</span>
-          <span className="text-[10px] text-gray-500">SAR & ML report</span>
+          <span className="font-semibold truncate w-full text-center">Evidence</span>
+          <span className="text-[10px] text-gray-500 truncate w-full text-center">SAR & ML</span>
         </button>
       </div>
     </div>

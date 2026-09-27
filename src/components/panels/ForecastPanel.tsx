@@ -18,15 +18,15 @@ export const ForecastPanel: React.FC = () => {
   const horizons: (6 | 12 | 24 | 48)[] = [6, 12, 24, 48];
 
   return (
-    <div className="p-4 space-y-4 text-xs text-gray-800 bg-white">
+    <div className="p-4 space-y-4 text-xs text-gray-800 bg-white w-full max-w-full box-border min-w-0">
       {/* 1. Forecast Projection Header & Horizon Selection */}
       <div className="border-b border-[#E5E7EB] pb-3.5 space-y-2.5">
-        <div className="flex items-center justify-between text-[11px] font-semibold text-gray-700">
-          <div className="flex items-center gap-1.5 text-[#17324D]">
-            <Wind className="h-3.5 w-3.5 text-[#1769AA]" />
-            <span>Drift trajectory forecast</span>
+        <div className="flex flex-wrap items-center justify-between gap-1 text-[11px] font-semibold text-gray-700 min-w-0">
+          <div className="flex items-center gap-1.5 text-[#17324D] min-w-0">
+            <Wind className="h-3.5 w-3.5 text-[#1769AA] shrink-0" />
+            <span className="truncate">Drift trajectory forecast</span>
           </div>
-          <span className="text-gray-500 font-normal">Lagrangian model</span>
+          <span className="text-gray-500 font-normal shrink-0">Lagrangian model</span>
         </div>
 
         {/* Horizon Buttons */}
@@ -34,7 +34,7 @@ export const ForecastPanel: React.FC = () => {
           <div className="text-[11px] font-medium text-gray-600 mb-1.5">
             Projection horizon
           </div>
-          <div className="grid grid-cols-4 gap-1">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-1">
             {horizons.map((h) => {
               const isSelected = selectedForecastHorizon === h;
               return (
@@ -115,46 +115,48 @@ export const ForecastPanel: React.FC = () => {
             <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
               Ensemble Progression Sequence
             </div>
-            <table className="gis-table text-[11px] w-full">
-              <thead>
-                <tr>
-                  <th className="py-1 px-1.5 text-left">Horizon</th>
-                  <th className="py-1 px-1.5 text-left">Projected Center</th>
-                  <th className="py-1 px-1.5 text-right">Coast Dist</th>
-                  <th className="py-1 px-1.5 text-right">Risk</th>
-                </tr>
-              </thead>
-              <tbody>
-                {horizons.map((h) => {
-                  const fc = inc.forecasts[h];
-                  const isSel = selectedForecastHorizon === h;
-                  return (
-                    <tr
-                      key={h}
-                      onClick={() => setSelectedForecastHorizon(h)}
-                      className={`cursor-pointer hover:bg-slate-50 transition ${isSel ? 'bg-blue-50/80 font-semibold' : ''}`}
-                    >
-                      <td className="py-1 px-1.5 font-bold text-slate-800">+{h}H</td>
-                      <td className="py-1 px-1.5 font-mono text-slate-600">{formatCoordinates(fc.predicted_center, 2)}</td>
-                      <td className="py-1 px-1.5 text-right font-mono text-slate-800">{fc.closest_shoreline_km} km</td>
-                      <td className="py-1 px-1.5 text-right">
-                        <span
-                          className={`text-[9px] font-bold px-1 py-0.2 rounded border ${
-                            fc.shoreline_impact_risk === 'HIGH'
-                              ? 'text-red-700 bg-red-50 border-red-200'
-                              : fc.shoreline_impact_risk === 'MODERATE'
-                              ? 'text-amber-700 bg-amber-50 border-amber-200'
-                              : 'text-emerald-700 bg-emerald-50 border-emerald-200'
-                          }`}
-                        >
-                          {fc.shoreline_impact_risk}
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+            <div className="gis-table-container w-full max-w-full overflow-x-auto">
+              <table className="gis-table text-[11px] w-full">
+                <thead>
+                  <tr>
+                    <th className="py-1 px-1.5 text-left">Horizon</th>
+                    <th className="py-1 px-1.5 text-left">Projected Center</th>
+                    <th className="py-1 px-1.5 text-right">Coast Dist</th>
+                    <th className="py-1 px-1.5 text-right">Risk</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {horizons.map((h) => {
+                    const fc = inc.forecasts[h];
+                    const isSel = selectedForecastHorizon === h;
+                    return (
+                      <tr
+                        key={h}
+                        onClick={() => setSelectedForecastHorizon(h)}
+                        className={`cursor-pointer hover:bg-slate-50 transition ${isSel ? 'bg-blue-50/80 font-semibold' : ''}`}
+                      >
+                        <td className="py-1 px-1.5 font-bold text-slate-800">+{h}H</td>
+                        <td className="py-1 px-1.5 font-mono text-slate-600">{formatCoordinates(fc.predicted_center, 2)}</td>
+                        <td className="py-1 px-1.5 text-right font-mono text-slate-800">{fc.closest_shoreline_km} km</td>
+                        <td className="py-1 px-1.5 text-right">
+                          <span
+                            className={`text-[9px] font-bold px-1 py-0.2 rounded border ${
+                              fc.shoreline_impact_risk === 'HIGH'
+                                ? 'text-red-700 bg-red-50 border-red-200'
+                                : fc.shoreline_impact_risk === 'MODERATE'
+                                ? 'text-amber-700 bg-amber-50 border-amber-200'
+                                : 'text-emerald-700 bg-emerald-50 border-emerald-200'
+                            }`}
+                          >
+                            {fc.shoreline_impact_risk}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}
@@ -165,32 +167,34 @@ export const ForecastPanel: React.FC = () => {
           Metocean hydrodynamic forcing
         </div>
 
-        <table className="gis-table text-xs">
-          <thead>
-            <tr>
-              <th className="py-1 px-2 text-[11px]">Component</th>
-              <th className="py-1 px-2 text-[11px]">Bearing</th>
-              <th className="py-1 px-2 text-[11px] text-right">Magnitude</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td className="py-1 px-2 text-gray-700 font-medium">Ocean surface current (HYCOM)</td>
-              <td className="py-1 px-2 text-gray-600 font-mono">{inc.signature.ambient_current_direction_deg}°</td>
-              <td className="py-1 px-2 font-semibold text-right text-gray-900 font-mono">{inc.signature.ambient_current_knots} kn</td>
-            </tr>
-            <tr>
-              <td className="py-1 px-2 text-gray-700 font-medium">Surface wind (NOAA GFS)</td>
-              <td className="py-1 px-2 text-gray-600 font-mono">{inc.signature.ambient_wind_direction_deg}°</td>
-              <td className="py-1 px-2 font-semibold text-right text-gray-900 font-mono">{inc.signature.ambient_wind_knots} kn</td>
-            </tr>
-            <tr>
-              <td className="py-1 px-2 text-gray-700 font-medium">Combined drift resultant</td>
-              <td className="py-1 px-2 text-gray-600 font-mono">{inc.signature.drift_direction_deg}°</td>
-              <td className="py-1 px-2 font-semibold text-right text-[#1769AA] font-mono">{inc.signature.drift_speed_knots} kn</td>
-            </tr>
-          </tbody>
-        </table>
+        <div className="gis-table-container w-full max-w-full overflow-x-auto">
+          <table className="gis-table text-xs w-full">
+            <thead>
+              <tr>
+                <th className="py-1 px-2 text-[11px]">Component</th>
+                <th className="py-1 px-2 text-[11px]">Bearing</th>
+                <th className="py-1 px-2 text-[11px] text-right">Magnitude</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td className="py-1 px-2 text-gray-700 font-medium">Ocean surface current (HYCOM)</td>
+                <td className="py-1 px-2 text-gray-600 font-mono">{inc.signature.ambient_current_direction_deg}°</td>
+                <td className="py-1 px-2 font-semibold text-right text-gray-900 font-mono">{inc.signature.ambient_current_knots} kn</td>
+              </tr>
+              <tr>
+                <td className="py-1 px-2 text-gray-700 font-medium">Surface wind (NOAA GFS)</td>
+                <td className="py-1 px-2 text-gray-600 font-mono">{inc.signature.ambient_wind_direction_deg}°</td>
+                <td className="py-1 px-2 font-semibold text-right text-gray-900 font-mono">{inc.signature.ambient_wind_knots} kn</td>
+              </tr>
+              <tr>
+                <td className="py-1 px-2 text-gray-700 font-medium">Combined drift resultant</td>
+                <td className="py-1 px-2 text-gray-600 font-mono">{inc.signature.drift_direction_deg}°</td>
+                <td className="py-1 px-2 font-semibold text-right text-[#1769AA] font-mono">{inc.signature.drift_speed_knots} kn</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* 4. Coastal Vulnerability Text */}

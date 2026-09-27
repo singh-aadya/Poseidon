@@ -6,6 +6,7 @@ import {
   ChevronDown,
   ChevronUp,
   Crosshair,
+  X,
 } from 'lucide-react';
 import { usePoseidonStore } from '../../store/usePoseidonStore';
 import { Incident } from '../../types';
@@ -24,6 +25,8 @@ export const IncidentExplorer: React.FC = () => {
     getFilteredIncidents,
     setRightPanelOpen,
     flyToCoords,
+    toggleLeftPanel,
+    currentUser,
   } = usePoseidonStore();
 
   const filteredIncidents = getFilteredIncidents();
@@ -43,10 +46,13 @@ export const IncidentExplorer: React.FC = () => {
   const handleSelectIncident = (inc: Incident) => {
     setActiveIncidentId(inc.id);
     setRightPanelOpen(true);
+    if (window.innerWidth < 1024) {
+      toggleLeftPanel();
+    }
   };
 
   return (
-    <aside className="relative flex h-full w-80 flex-col border-r border-[#D1D5DB] bg-white text-gray-800 select-none shadow-xs">
+    <aside className="relative flex h-full w-full max-w-full flex-col border-r border-[#D1D5DB] bg-white text-gray-800 select-none shadow-xs box-border min-w-0">
       {/* Catalog Header */}
       <div className="flex items-center justify-between border-b border-[#E5E7EB] bg-[#F8FAFC] px-3.5 py-2">
         <div className="flex items-center gap-2">
@@ -58,18 +64,42 @@ export const IncidentExplorer: React.FC = () => {
           </span>
         </div>
 
-        <button
-          onClick={() => setFilterDrawerOpen(!filterDrawerOpen)}
-          className={`flex h-6 items-center gap-1 rounded-sm border px-2 text-[11px] font-medium transition ${
-            filterDrawerOpen || filters.confidence !== 'ALL' || filters.severity !== 'ALL' || filters.region !== 'ALL'
-              ? 'border-[#1769AA] bg-[#EFF6FF] text-[#1769AA]'
-              : 'border-[#D1D5DB] bg-white text-gray-600 hover:bg-gray-50'
-          }`}
-        >
-          <SlidersHorizontal className="h-3 w-3" />
-          <span>Filters</span>
-          {filterDrawerOpen ? <ChevronUp className="h-3 w-3 ml-0.5" /> : <ChevronDown className="h-3 w-3 ml-0.5" />}
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => setFilterDrawerOpen(!filterDrawerOpen)}
+            className={`flex h-6 items-center gap-1 rounded-sm border px-2 text-[11px] font-medium transition ${
+              filterDrawerOpen || filters.confidence !== 'ALL' || filters.severity !== 'ALL' || filters.region !== 'ALL'
+                ? 'border-[#1769AA] bg-[#EFF6FF] text-[#1769AA]'
+                : 'border-[#D1D5DB] bg-white text-gray-600 hover:bg-gray-50'
+            }`}
+          >
+            <SlidersHorizontal className="h-3 w-3" />
+            <span>Filters</span>
+            {filterDrawerOpen ? <ChevronUp className="h-3 w-3 ml-0.5" /> : <ChevronDown className="h-3 w-3 ml-0.5" />}
+          </button>
+
+          <button
+            onClick={toggleLeftPanel}
+            className="lg:hidden flex h-6 w-6 items-center justify-center rounded-sm border border-[#D1D5DB] bg-white text-gray-600 hover:bg-gray-50 transition"
+            title="Close incident drawer"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      </div>
+
+      {/* Clearance Indicator Banner */}
+      <div className={`px-3 py-1 text-[10px] flex items-center justify-between border-b ${
+        currentUser.role === 'public'
+          ? 'bg-sky-50 text-sky-900 border-sky-200'
+          : 'bg-slate-100 text-slate-700 border-slate-200'
+      }`}>
+        <span className="font-semibold uppercase tracking-wider">
+          {currentUser.role === 'public' ? 'Public Verified Feed' : `${currentUser.role} Clearance`}
+        </span>
+        <span className="text-[9px] font-mono text-slate-500">
+          {currentUser.role === 'public' ? 'Approved (≥70% Conf)' : 'Unrestricted Feed'}
+        </span>
       </div>
 
       {/* Search Input Box */}

@@ -1,7 +1,9 @@
 export type SeverityLevel = 'LOW' | 'MEDIUM' | 'HIGH';
 export type ConfidenceLevel = 'LOW' | 'MEDIUM' | 'HIGH';
 export type IncidentStatus = 'Detected' | 'Under investigation' | 'Resolved';
-export type AppMode = 'overview' | 'detection' | 'attribution' | 'forecast' | 'evidence' | 'analytics';
+export type AppMode = 'overview' | 'detection' | 'attribution' | 'forecast' | 'evidence' | 'analytics' | 'public-info' | 'admin';
+
+export * from './rbac';
 
 export interface Coordinates {
   lng: number;

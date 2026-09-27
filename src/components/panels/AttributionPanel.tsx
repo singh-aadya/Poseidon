@@ -23,8 +23,10 @@ export const AttributionPanel: React.FC = () => {
     demoInvestigation,
     layers,
     setLayer,
+    currentUser,
   } = usePoseidonStore();
 
+  const isPublic = currentUser.role === 'public';
   const inc = getActiveIncident();
   const selectedCandidate: SourceCandidate =
     inc.candidates.find((c) => c.id === selectedCandidateId) || inc.candidates[0];
@@ -42,19 +44,32 @@ export const AttributionPanel: React.FC = () => {
   ];
 
   return (
-    <div className="p-4 space-y-4 text-xs text-gray-800 bg-white">
+    <div className="p-4 space-y-4 text-xs text-gray-800 bg-white w-full max-w-full box-border min-w-0">
+      {/* Public Role Access Restriction Advisory */}
+      {isPublic && (
+        <div className="rounded-sm border border-amber-300 bg-amber-50 p-2.5 text-xs text-amber-900 space-y-1">
+          <div className="flex items-center gap-1.5 font-bold">
+            <AlertCircle className="h-4 w-4 text-amber-700 shrink-0" />
+            <span>PUBLIC ACCESS ADVISORY</span>
+          </div>
+          <p className="text-[11px] leading-relaxed text-amber-800">
+            Under international maritime data privacy standards, candidate vessel identities under active forensic evaluation are masked for public observers. Switch to Analyst or Incident Commander clearance in the top navigation to review unredacted vessel telemetry, IMO numbers, and engine log correlation.
+          </p>
+        </div>
+      )}
+
       {/* 1. Header & Reconstructed Vessel Activity Summary */}
       <div className="border-b border-[#E5E7EB] pb-3.5 space-y-2">
-        <div className="flex items-center justify-between text-[11px] font-semibold text-gray-700">
-          <div className="flex items-center gap-1.5 text-[#17324D]">
-            <Ship className="h-3.5 w-3.5 text-[#1769AA]" />
-            <span>AIS spatio-temporal reconstruction</span>
+        <div className="flex flex-wrap items-center justify-between gap-1 text-[11px] font-semibold text-gray-700 min-w-0">
+          <div className="flex items-center gap-1.5 text-[#17324D] min-w-0">
+            <Ship className="h-3.5 w-3.5 text-[#1769AA] shrink-0" />
+            <span className="truncate">AIS spatio-temporal reconstruction</span>
           </div>
-          <span className="text-gray-500 font-normal">30 km corridor</span>
+          <span className="text-gray-500 font-normal shrink-0">30 km corridor</span>
         </div>
 
         {/* Release window context */}
-        <div className="flex items-center justify-between text-[11px] text-gray-600 pt-1">
+        <div className="flex flex-wrap items-center justify-between gap-1 text-[11px] text-gray-600 pt-1 min-w-0">
           <span className="text-gray-500">Target release window</span>
           <div className="flex items-center gap-1 font-mono text-[11px] text-gray-800 font-medium">
             <span>{formatUtcDateTime(inc.spill_window_start).slice(5)}</span>
@@ -86,6 +101,9 @@ export const AttributionPanel: React.FC = () => {
         <div className="space-y-1 text-xs">
           {inc.candidates.map((cand, index) => {
             const isSelected = cand.id === selectedCandidate?.id;
+            const vesselDisplayName = isPublic ? `Candidate Alpha-0${index + 1}` : cand.vessel_name;
+            const vesselSubText = isPublic ? `Commercial Vessel • Flag [Restricted]` : `${cand.vessel_type} • ${cand.flag}`;
+
             return (
               <div
                 key={cand.id}
@@ -102,7 +120,7 @@ export const AttributionPanel: React.FC = () => {
                   </span>
                   <div>
                     <div className="font-semibold text-gray-900 flex items-center gap-1.5">
-                      <span>{cand.vessel_name}</span>
+                      <span>{vesselDisplayName}</span>
                       {cand.behavioral_signals.ais_gap_detected && (
                         <span
                           className="h-1.5 w-1.5 rounded-full bg-[#C47A00]"
@@ -111,7 +129,7 @@ export const AttributionPanel: React.FC = () => {
                       )}
                     </div>
                     <div className="text-[10px] text-gray-500">
-                      {cand.vessel_type} • {cand.flag}
+                      {vesselSubText}
                     </div>
                   </div>
                 </div>
@@ -137,7 +155,7 @@ export const AttributionPanel: React.FC = () => {
                 Candidate assessment
               </div>
               <h3 className="font-sans text-sm font-bold text-[#17324D]">
-                {selectedCandidate.vessel_name}
+                {isPublic ? 'Candidate Alpha-01 (Active AIS Evaluation)' : selectedCandidate.vessel_name}
               </h3>
             </div>
             <div className="text-right">
@@ -156,30 +174,32 @@ export const AttributionPanel: React.FC = () => {
                 P(Source | Evidence) = 0.87
               </span>
             </div>
-            <table className="w-full text-[11px]">
-              <tbody className="divide-y divide-slate-200/70">
-                <tr>
-                  <td className="py-1 text-slate-600">Distance to reconstructed origin</td>
-                  <td className="py-1 text-right font-mono font-bold text-slate-900">0.42 km <span className="text-[10px] text-slate-400 font-normal">(±1.4 km)</span></td>
-                </tr>
-                <tr>
-                  <td className="py-1 text-slate-600">Temporal passage offset</td>
-                  <td className="py-1 text-right font-mono font-bold text-slate-900">+18 min <span className="text-[10px] text-slate-400 font-normal">(coincident)</span></td>
-                </tr>
-                <tr>
-                  <td className="py-1 text-slate-600">Kinematic speed anomaly</td>
-                  <td className="py-1 text-right font-mono font-bold text-amber-700">14.1 → 8.2 kn <span className="text-[10px] text-amber-600 font-normal">(-41.8%)</span></td>
-                </tr>
-                <tr>
-                  <td className="py-1 text-slate-600">Heading adjustment</td>
-                  <td className="py-1 text-right font-mono font-bold text-slate-900">12° starboard <span className="text-[10px] text-slate-400 font-normal">(in window)</span></td>
-                </tr>
-                <tr>
-                  <td className="py-1 text-slate-600">Drift trajectory alignment</td>
-                  <td className="py-1 text-right font-mono font-bold text-slate-900">0.94 <span className="text-[10px] text-slate-400 font-normal">(Pearson r)</span></td>
-                </tr>
-              </tbody>
-            </table>
+            <div className="gis-table-container w-full max-w-full overflow-x-auto">
+              <table className="w-full text-[11px]">
+                <tbody className="divide-y divide-slate-200/70">
+                  <tr>
+                    <td className="py-1 text-slate-600">Distance to reconstructed origin</td>
+                    <td className="py-1 text-right font-mono font-bold text-slate-900">0.42 km <span className="text-[10px] text-slate-400 font-normal">(±1.4 km)</span></td>
+                  </tr>
+                  <tr>
+                    <td className="py-1 text-slate-600">Temporal passage offset</td>
+                    <td className="py-1 text-right font-mono font-bold text-slate-900">+18 min <span className="text-[10px] text-slate-400 font-normal">(coincident)</span></td>
+                  </tr>
+                  <tr>
+                    <td className="py-1 text-slate-600">Kinematic speed anomaly</td>
+                    <td className="py-1 text-right font-mono font-bold text-amber-700">14.1 → 8.2 kn <span className="text-[10px] text-amber-600 font-normal">(-41.8%)</span></td>
+                  </tr>
+                  <tr>
+                    <td className="py-1 text-slate-600">Heading adjustment</td>
+                    <td className="py-1 text-right font-mono font-bold text-slate-900">12° starboard <span className="text-[10px] text-slate-400 font-normal">(in window)</span></td>
+                  </tr>
+                  <tr>
+                    <td className="py-1 text-slate-600">Drift trajectory alignment</td>
+                    <td className="py-1 text-right font-mono font-bold text-slate-900">0.94 <span className="text-[10px] text-slate-400 font-normal">(Pearson r)</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
 
           {/* 6 Sequential Forensic Attribution Factors */}
@@ -199,21 +219,21 @@ export const AttributionPanel: React.FC = () => {
                 return (
                   <div
                     key={factor.name}
-                    className={`flex items-center justify-between py-1 px-1.5 rounded transition-all duration-300 ${
+                    className={`flex items-center justify-between py-1 px-1.5 rounded transition-all duration-300 gap-1 min-w-0 ${
                       isVerified ? 'bg-slate-50' : 'opacity-40'
                     }`}
                   >
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1.5 min-w-0">
                       {isVerified ? (
                         <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
                       ) : (
                         <span className="h-3.5 w-3.5 rounded-full border border-gray-300 shrink-0 inline-block" />
                       )}
-                      <span className={`text-[11px] ${isVerified ? 'font-medium text-gray-900' : 'text-gray-500'}`}>
+                      <span className={`text-[11px] truncate ${isVerified ? 'font-medium text-gray-900' : 'text-gray-500'}`}>
                         {factor.name}
                       </span>
                     </div>
-                    <div className="flex items-center gap-1 font-mono text-[10px]">
+                    <div className="flex items-center gap-1 font-mono text-[10px] shrink-0">
                       <span className="text-gray-500">{factor.detail}</span>
                       {isVerified && (
                         <span className="text-emerald-700 font-bold ml-1">✓</span>
@@ -281,12 +301,12 @@ export const AttributionPanel: React.FC = () => {
 
             <div className="p-2.5 space-y-2 text-xs">
               {/* Visual Chain Ribbon */}
-              <div className="flex items-center justify-between rounded bg-white p-2 border border-slate-200 font-mono text-[10px] text-[#17324D] font-semibold">
-                <span className="text-[#0284C7]">Vessel Trajectory</span>
-                <ArrowRight className="h-3 w-3 text-gray-400" />
-                <span className="text-[#D97706]">Probable Origin</span>
-                <ArrowRight className="h-3 w-3 text-gray-400" />
-                <span className="text-[#DC2626]">Detected Slick</span>
+              <div className="flex flex-wrap items-center justify-between gap-1 rounded bg-white p-2 border border-slate-200 font-mono text-[10px] text-[#17324D] font-semibold">
+                <span className="text-[#0284C7] shrink-0">Vessel Trajectory</span>
+                <ArrowRight className="h-3 w-3 text-gray-400 shrink-0" />
+                <span className="text-[#D97706] shrink-0">Probable Origin</span>
+                <ArrowRight className="h-3 w-3 text-gray-400 shrink-0" />
+                <span className="text-[#DC2626] shrink-0">Detected Slick</span>
               </div>
 
               <div className="space-y-1 text-slate-700 text-[11px] leading-relaxed">
@@ -300,14 +320,20 @@ export const AttributionPanel: React.FC = () => {
             </div>
           </div>
 
-          {/* View Vessel Profile Button */}
-          <button
-            onClick={() => setVesselDetailModalOpen(true)}
-            className="flex w-full items-center justify-center gap-1.5 rounded-sm border border-[#D1D5DB] bg-white py-1.5 text-xs font-medium text-gray-800 hover:bg-gray-50 transition shadow-2xs"
-          >
-            <ExternalLink className="h-3.5 w-3.5 text-gray-600" />
-            <span>Open vessel registry record</span>
-          </button>
+          {/* View Vessel Profile Button / Public Clearance Notice */}
+          {isPublic ? (
+            <div className="p-2.5 rounded-xs bg-slate-50 border border-slate-200 text-center text-[11px] text-slate-500">
+              Commercial vessel registry dossiers require <strong>Operational Analyst</strong> or <strong>Incident Commander</strong> clearance.
+            </div>
+          ) : (
+            <button
+              onClick={() => setVesselDetailModalOpen(true)}
+              className="flex w-full items-center justify-center gap-1.5 rounded-sm border border-[#D1D5DB] bg-white py-1.5 text-xs font-medium text-gray-800 hover:bg-gray-50 transition shadow-2xs"
+            >
+              <ExternalLink className="h-3.5 w-3.5 text-gray-600" />
+              <span>Open vessel registry record</span>
+            </button>
+          )}
         </div>
       )}
 

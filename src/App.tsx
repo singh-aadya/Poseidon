@@ -13,47 +13,72 @@ import { CopilotDrawer } from './components/copilot/CopilotDrawer';
 import { IncidentComparisonModal } from './components/panels/IncidentComparisonModal';
 
 import { HistoryAnalyticsWorkspace } from './components/analytics/HistoryAnalyticsWorkspace';
+import { PublicInfoWorkspace } from './components/public/PublicInfoWorkspace';
+import { AlertsCenter } from './components/alerts/AlertsCenter';
+import { AssignIncidentModal } from './components/alerts/AssignIncidentModal';
+import { AdminAuditModal } from './components/admin/AdminAuditModal';
 
 export const App: React.FC = () => {
   const {
     activeMode,
     leftPanelOpen,
+    toggleLeftPanel,
+    setLeftPanelOpen,
     rightPanelOpen,
     notificationDrawerOpen,
     setNotificationDrawerOpen,
   } = usePoseidonStore();
 
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+      setLeftPanelOpen(false);
+    }
+  }, [setLeftPanelOpen]);
+
   return (
-    <div className="flex h-screen w-screen flex-col overflow-hidden bg-[#F5F7F9] text-gray-900 font-sans">
+    <div className="flex h-screen w-full max-w-full flex-col overflow-hidden bg-[#F5F7F9] text-gray-900 font-sans box-border">
       {/* 1. Compact NASA FIRMS-Style Top Navigation */}
       <TopNav />
 
-      {/* 2. Main Middle Workspace: History & Analytics or Live Map Workspace */}
+      {/* 2. Main Middle Workspace: History & Analytics, Public Info, or Live Map Workspace */}
       {activeMode === 'analytics' ? (
-        <main className="relative flex-1 h-full w-full overflow-hidden">
+        <main className="relative flex-1 h-full w-full max-w-full overflow-hidden min-w-0">
           <HistoryAnalyticsWorkspace />
+        </main>
+      ) : activeMode === 'public-info' ? (
+        <main className="relative flex-1 h-full w-full max-w-full overflow-hidden min-w-0">
+          <PublicInfoWorkspace />
         </main>
       ) : (
         <>
-          <div className="relative flex flex-1 overflow-hidden">
-            {/* Left Collapsible Incident Explorer */}
+          <div className="relative flex flex-1 min-w-0 overflow-hidden w-full max-w-full">
+            {/* Mobile Backdrop for Left Panel Drawer */}
             {leftPanelOpen && (
-              <div className="absolute lg:relative z-20 h-full w-80 max-w-[85vw] shrink-0 shadow-2xl transition-all duration-300">
+              <div
+                className="fixed inset-0 z-30 bg-black/40 lg:hidden transition-opacity"
+                onClick={toggleLeftPanel}
+                aria-label="Close incident explorer"
+              />
+            )}
+
+            {/* Left Collapsible Incident Explorer: Drawer on mobile/tablet (< lg), Column on desktop (≥ lg) */}
+            {leftPanelOpen && (
+              <div className="fixed inset-y-0 left-0 z-40 h-full w-full sm:w-80 max-w-[85vw] lg:relative lg:inset-auto lg:z-10 lg:w-72 xl:w-80 shrink-0 shadow-2xl lg:shadow-none transition-all duration-300">
                 <IncidentExplorer />
               </div>
             )}
 
             {/* Dominant WebGL Map Centerpiece */}
-            <main className="relative flex-1 h-full w-full overflow-hidden">
+            <main className="relative flex-1 h-full w-full min-w-0 overflow-hidden">
               <MapView />
 
               {/* Interactive Guided Demo HUD */}
               <DemoInvestigationModal />
             </main>
 
-            {/* Right Collapsible Intelligence Panel */}
+            {/* Right Collapsible Intelligence Panel: Bottom sheet on mobile (< md), column on tablet & desktop (≥ md) */}
             {rightPanelOpen && (
-              <div className="absolute right-0 top-0 bottom-0 lg:relative z-20 h-full w-96 max-w-[90vw] shrink-0 shadow-2xl transition-all duration-300">
+              <div className="fixed inset-x-0 bottom-9.5 z-30 max-h-[72vh] w-full max-w-full md:relative md:inset-auto md:z-10 md:h-full md:max-h-full md:w-80 lg:w-88 xl:w-96 shrink-0 shadow-2xl md:shadow-none transition-all duration-300 flex flex-col min-w-0">
                 <RightIntelligencePanel />
               </div>
             )}
@@ -72,6 +97,9 @@ export const App: React.FC = () => {
         isOpen={notificationDrawerOpen}
         onClose={() => setNotificationDrawerOpen(false)}
       />
+      <AlertsCenter />
+      <AssignIncidentModal />
+      <AdminAuditModal />
       <CopilotDrawer />
     </div>
   );

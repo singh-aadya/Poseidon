@@ -125,15 +125,15 @@ export const EvidencePanel: React.FC = () => {
       : inc.sar_imagery.overlay_composite_url;
 
   return (
-    <div className="p-4 space-y-4 text-xs text-gray-800 bg-white">
+    <div className="p-4 space-y-4 text-xs text-gray-800 bg-white w-full max-w-full box-border min-w-0">
       {/* 1. Header */}
       <div className="border-b border-[#E5E7EB] pb-3.5 space-y-1">
-        <div className="flex items-center justify-between text-[11px] font-semibold text-gray-700">
-          <div className="flex items-center gap-1.5 text-[#17324D]">
-            <FileText className="h-3.5 w-3.5 text-[#1769AA]" />
-            <span>Investigation evidence dossier</span>
+        <div className="flex flex-wrap items-center justify-between gap-1 text-[11px] font-semibold text-gray-700 min-w-0">
+          <div className="flex items-center gap-1.5 text-[#17324D] min-w-0">
+            <FileText className="h-3.5 w-3.5 text-[#1769AA] shrink-0" />
+            <span className="truncate">Investigation evidence dossier</span>
           </div>
-          <span className="font-mono text-gray-600 font-bold">{inc.id}</span>
+          <span className="font-mono text-gray-600 font-bold shrink-0">{inc.id}</span>
         </div>
         <p className="text-[11px] text-gray-600 leading-relaxed">
           Forensic verification bundle combining Copernicus Sentinel-1 C-Band SAR backscatter dampening,
@@ -143,21 +143,21 @@ export const EvidencePanel: React.FC = () => {
 
       {/* 2. SATELLITE IMAGE COMPARISON */}
       <div className="border-b border-[#E5E7EB] pb-3.5 space-y-2">
-        <div className="flex items-center justify-between text-[11px] font-semibold text-gray-700">
-          <div className="flex items-center gap-1.5">
-            <Satellite className="h-3.5 w-3.5 text-[#1769AA]" />
-            <span>Satellite imagery analysis</span>
+        <div className="flex flex-wrap items-center justify-between gap-1 text-[11px] font-semibold text-gray-700 min-w-0">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <Satellite className="h-3.5 w-3.5 text-[#1769AA] shrink-0" />
+            <span className="truncate">Satellite imagery analysis</span>
           </div>
-          <span className="text-gray-500 font-normal">{inc.satellite}</span>
+          <span className="text-gray-500 font-normal shrink-0">{inc.satellite}</span>
         </div>
 
-        {/* View Mode Switcher */}
-        <div className="grid grid-cols-4 gap-1">
+        {/* View Mode Switcher: 2x2 grid on narrow screens, 4 cols on wider */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-1">
           {(['before', 'after', 'mask', 'overlay'] as const).map((m) => (
             <button
               key={m}
               onClick={() => setSatelliteComparison({ mode: m })}
-              className={`rounded-sm py-1 text-xs font-semibold capitalize transition border ${
+              className={`rounded-sm py-1 px-1.5 text-xs font-semibold capitalize transition border text-center ${
                 mode === m
                   ? 'bg-[#1769AA] text-white border-[#1769AA]'
                   : 'border-[#D1D5DB] bg-white text-gray-700 hover:bg-slate-50'
@@ -169,11 +169,11 @@ export const EvidencePanel: React.FC = () => {
         </div>
 
         {/* Image Frame */}
-        <div className="relative overflow-hidden rounded-sm border border-[#D1D5DB] bg-[#F8FAFC] aspect-video flex items-center justify-center">
+        <div className="relative overflow-hidden rounded-sm border border-[#D1D5DB] bg-[#F8FAFC] aspect-video w-full max-w-full flex items-center justify-center">
           <img
             src={currentImageUrl}
             alt="Satellite analysis preview"
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover max-w-full"
             style={{
               opacity: mode === 'mask' ? maskOpacity : 1.0,
             }}
@@ -186,9 +186,9 @@ export const EvidencePanel: React.FC = () => {
 
         {/* Mask Opacity Slider */}
         <div className="space-y-1 pt-1 text-xs">
-          <div className="flex justify-between text-gray-600">
-            <span>Segmentation mask opacity</span>
-            <span className="font-semibold text-gray-800 font-mono">{Math.round(maskOpacity * 100)}%</span>
+          <div className="flex justify-between items-center text-gray-600 min-w-0">
+            <span className="truncate pr-2">Segmentation mask opacity</span>
+            <span className="font-semibold text-gray-800 font-mono shrink-0">{Math.round(maskOpacity * 100)}%</span>
           </div>
           <input
             type="range"
@@ -199,7 +199,7 @@ export const EvidencePanel: React.FC = () => {
             onChange={(e) =>
               setSatelliteComparison({ maskOpacity: parseFloat(e.target.value) })
             }
-            className="w-full cursor-pointer h-1.5 bg-gray-200 rounded-sm accent-[#1769AA]"
+            className="w-full max-w-full cursor-pointer h-1.5 bg-gray-200 rounded-sm accent-[#1769AA]"
           />
         </div>
 
@@ -245,44 +245,46 @@ export const EvidencePanel: React.FC = () => {
           </span>
         </div>
 
-        <table className="gis-table text-xs">
-          <thead>
-            <tr>
-              <th className="py-1 px-2 text-[11px]">Parameter</th>
-              <th className="py-1 px-2 text-[11px] text-right">Value</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td className="py-1 px-2 text-gray-600">Architecture</td>
-              <td className="py-1 px-2 font-medium text-right text-gray-900">{inc.ml_metrics.architecture}</td>
-            </tr>
-            <tr>
-              <td className="py-1 px-2 text-gray-600">Backbone</td>
-              <td className="py-1 px-2 font-medium text-right text-gray-900">ResNeXt-101 (32x8d)</td>
-            </tr>
-            <tr>
-              <td className="py-1 px-2 text-gray-600">Detection confidence</td>
-              <td className="py-1 px-2 font-semibold text-right text-gray-900 font-mono">{(inc.ml_metrics.detection_confidence * 100).toFixed(1)}%</td>
-            </tr>
-            <tr>
-              <td className="py-1 px-2 text-gray-600">Intersection over Union (IoU)</td>
-              <td className="py-1 px-2 font-semibold text-right text-gray-900 font-mono">{inc.ml_metrics.iou_score.toFixed(3)}</td>
-            </tr>
-            <tr>
-              <td className="py-1 px-2 text-gray-600">Dice coefficient</td>
-              <td className="py-1 px-2 font-medium text-right text-gray-900 font-mono">{inc.ml_metrics.dice_coefficient.toFixed(3)}</td>
-            </tr>
-            <tr>
-              <td className="py-1 px-2 text-gray-600">Look-alike probability</td>
-              <td className="py-1 px-2 font-medium text-right text-gray-900 font-mono">{(inc.ml_metrics.look_alike_probability * 100).toFixed(1)}%</td>
-            </tr>
-            <tr>
-              <td className="py-1 px-2 text-gray-600">Spatial resolution</td>
-              <td className="py-1 px-2 font-medium text-right text-gray-900 font-mono">10.0 m/pixel</td>
-            </tr>
-          </tbody>
-        </table>
+        <div className="gis-table-container w-full max-w-full overflow-x-auto">
+          <table className="gis-table text-xs w-full">
+            <thead>
+              <tr>
+                <th className="py-1 px-2 text-[11px]">Parameter</th>
+                <th className="py-1 px-2 text-[11px] text-right">Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td className="py-1 px-2 text-gray-600">Architecture</td>
+                <td className="py-1 px-2 font-medium text-right text-gray-900">{inc.ml_metrics.architecture}</td>
+              </tr>
+              <tr>
+                <td className="py-1 px-2 text-gray-600">Backbone</td>
+                <td className="py-1 px-2 font-medium text-right text-gray-900">ResNeXt-101 (32x8d)</td>
+              </tr>
+              <tr>
+                <td className="py-1 px-2 text-gray-600">Detection confidence</td>
+                <td className="py-1 px-2 font-semibold text-right text-gray-900 font-mono">{(inc.ml_metrics.detection_confidence * 100).toFixed(1)}%</td>
+              </tr>
+              <tr>
+                <td className="py-1 px-2 text-gray-600">Intersection over Union (IoU)</td>
+                <td className="py-1 px-2 font-semibold text-right text-gray-900 font-mono">{inc.ml_metrics.iou_score.toFixed(3)}</td>
+              </tr>
+              <tr>
+                <td className="py-1 px-2 text-gray-600">Dice coefficient</td>
+                <td className="py-1 px-2 font-medium text-right text-gray-900 font-mono">{inc.ml_metrics.dice_coefficient.toFixed(3)}</td>
+              </tr>
+              <tr>
+                <td className="py-1 px-2 text-gray-600">Look-alike probability</td>
+                <td className="py-1 px-2 font-medium text-right text-gray-900 font-mono">{(inc.ml_metrics.look_alike_probability * 100).toFixed(1)}%</td>
+              </tr>
+              <tr>
+                <td className="py-1 px-2 text-gray-600">Spatial resolution</td>
+                <td className="py-1 px-2 font-medium text-right text-gray-900 font-mono">10.0 m/pixel</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* 4. 9-STEP FORENSIC EVIDENCE CHAIN */}
