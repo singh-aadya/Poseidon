@@ -67,9 +67,9 @@ export const AssignIncidentModal: React.FC = () => {
   ];
 
   const availableResponders: Record<string, string[]> = {
-    'USCG Gulf Strike Team': ['Cmdr. James Miller', 'Lt. Marcus Brody', 'Duty Officer Sector NOLA'],
-    'NOAA HAZMAT Scientific Support': ['Dr. Elena Vance', 'Dr. Aris Thorne', 'Regional Scientific Coordinator'],
-    'Copernicus Marine Rapid Response': ['Dr. Simon Wright', 'Analyst Marine Unit 3'],
+    'USCG Gulf Strike Team': ['Cmdr. Vikram Malhotra', 'Lt. Arjun Verma', 'Duty Officer Sector NOLA'],
+    'NOAA HAZMAT Scientific Support': ['Dr. Ananya Sharma', 'Dr. Rohan Iyer', 'Regional Scientific Coordinator'],
+    'Copernicus Marine Rapid Response': ['Dr. Rajesh Nair', 'Analyst Marine Unit 3'],
     'EPA Region 6 Response Center': ['On-Scene Coordinator (OSC)', 'Enforcement Lead TX/LA'],
     'Clean Gulf Associates (Industry Co-op)': ['Rapid Boom Task Force Lead', 'Skimmer Ops Dispatch'],
   };

@@ -318,7 +318,7 @@ export const usePoseidonStore = create<PoseidonState>((set, get) => ({
   notificationDrawerOpen: false,
 
   // RBAC & User Session
-  currentUser: MOCK_USERS[1], // Default: Dr. Elena Vance (Lead Analyst)
+  currentUser: MOCK_USERS[1], // Default: Dr. Ananya Sharma (Lead Analyst)
   users: MOCK_USERS,
 
   // Alerts Center

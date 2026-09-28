@@ -114,7 +114,7 @@ export const TopNav: React.FC = () => {
   };
 
   return (
-    <header className="relative z-30 flex h-12 w-full max-w-full items-center justify-between border-b border-[#0F2538] bg-[#17324D] px-2 sm:px-3 text-white select-none shadow-sm box-border min-w-0 overflow-hidden">
+    <header className="relative z-40 flex h-12 w-full max-w-full items-center justify-between border-b border-[#0F2538] bg-[#17324D] px-2 sm:px-3 text-white select-none shadow-sm box-border min-w-0">
       {/* 1. LEFT ZONE: Brand & Sidebar Toggle */}
       <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0 min-w-0 pr-1 sm:pr-2">
         <button

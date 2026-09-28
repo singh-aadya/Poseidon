@@ -27,7 +27,7 @@ export const RightIntelligencePanel: React.FC = () => {
   const { currentUser, assignments, setAssignIncidentModalIncidentId } = usePoseidonStore();
   const assignment = assignments[inc.id] || {
     assignedTeam: 'USCG Gulf Strike Team',
-    assignedResponder: 'Cmdr. James Miller',
+    assignedResponder: 'Cmdr. Vikram Malhotra',
     workflowStage: 'Assigned',
     escalationLevel: 'CRITICAL RESPONSE',
   };

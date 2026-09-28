@@ -50,9 +50,10 @@ export const RoleSwitcher: React.FC = () => {
     <div className="relative inline-block text-left shrink-0" ref={dropdownRef}>
       {/* Role Pill Button */}
       <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
         title={`Active Persona: ${currentUser.name} (${currentUser.role.toUpperCase()})`}
-        className="flex items-center gap-1.5 sm:gap-2 rounded-sm border border-[#2F4F70] bg-[#102438] px-2 py-1 text-xs text-white hover:bg-[#163350] transition select-none shrink-0"
+        className="flex items-center gap-1.5 sm:gap-2 rounded-sm border border-[#2F4F70] bg-[#102438] px-2 py-1 text-xs text-white hover:bg-[#163350] transition select-none shrink-0 cursor-pointer"
       >
         {/* User avatar initials */}
         <div className="flex h-5 w-5 items-center justify-center rounded-xs bg-[#1F4367] text-[10px] font-bold text-sky-200 shrink-0">
@@ -72,12 +73,12 @@ export const RoleSwitcher: React.FC = () => {
           </span>
         </div>
 
-        <ChevronDown className="h-3 w-3 text-slate-400 shrink-0" />
+        <ChevronDown className={`h-3 w-3 text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180 text-white' : ''}`} />
       </button>
 
       {/* Role Selection Dropdown */}
       {isOpen && (
-        <div className="absolute right-0 mt-1.5 w-72 sm:w-80 max-w-[calc(100vw-1rem)] rounded-sm border border-slate-300 bg-white shadow-xl z-50 animate-in fade-in-50 duration-100 divide-y divide-slate-100">
+        <div className="absolute right-0 top-full mt-1.5 w-72 sm:w-80 max-w-[calc(100vw-1rem)] rounded-sm border border-slate-300 bg-white shadow-2xl z-50 animate-in fade-in-50 duration-100 divide-y divide-slate-100">
           {/* Header */}
           <div className="p-3 bg-slate-50 border-b border-slate-200">
             <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500">

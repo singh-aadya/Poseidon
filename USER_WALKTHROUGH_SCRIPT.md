@@ -205,7 +205,7 @@ When showing someone around the screen for the first time, use this quick spatia
 
 1. **Top Navigation Bar:**
    - **Mode Selector:** Switch between *Overview*, *Live Map*, *History & Analytics*, *Attribution*, *Forecast*, *Evidence*, and *Public Info*.
-   - **Role Switcher:** Toggle permissions between **Analyst**, **Incident Commander**, **Public Viewer** (which masks sensitive ship names for legal privacy), and **Admin**.
+   - **Role Switcher:** Toggle operational personas between **Analyst (Dr. Ananya Sharma)**, **Incident Commander (Cmdr. Vikram Malhotra)**, **System Admin (Sunita Reddy)**, and **Public Viewer (Aarav Mehta)** (which masks sensitive ship names for legal privacy).
    - **Run Demo Button:** An automated 9-step guided walkthrough with auto-camera zoom, layer switching, and scene narratives.
    - **Maritime AI Copilot:** An intelligent assistant that answers queries like *"Show vessels with AIS gaps near Mississippi Canyon"*.
    - **Alerts Center:** Real-time push alerts and task assignments for strike teams.
