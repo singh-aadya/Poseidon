@@ -27,8 +27,8 @@ export const AssignIncidentModal: React.FC = () => {
     incidents,
   } = usePoseidonStore();
 
-  const [selectedTeam, setSelectedTeam] = useState('USCG Gulf Strike Team');
-  const [selectedResponder, setSelectedResponder] = useState('Cmdr. James Miller');
+  const [selectedTeam, setSelectedTeam] = useState('Indian Coast Guard (ICG) Rapid Pollution Response Team');
+  const [selectedResponder, setSelectedResponder] = useState('Cmdr. Vikram Malhotra');
   const [escalationLevel, setEscalationLevel] = useState<'MONITORING' | 'ADVISORY' | 'CRITICAL RESPONSE'>('CRITICAL RESPONSE');
   const [newNote, setNewNote] = useState('');
 
@@ -37,8 +37,8 @@ export const AssignIncidentModal: React.FC = () => {
   const incident = incidents.find((i) => i.id === assignIncidentModalIncidentId);
   const currentAssignment = assignments[assignIncidentModalIncidentId] || {
     incidentId: assignIncidentModalIncidentId,
-    assignedTeam: 'USCG Gulf Strike Team',
-    assignedResponder: 'Cmdr. James Miller',
+    assignedTeam: 'Indian Coast Guard (ICG) Rapid Pollution Response Team',
+    assignedResponder: 'Cmdr. Vikram Malhotra',
     assignedBy: 'System Auto-Dispatcher',
     assignedAt: new Date().toISOString(),
     escalationLevel: 'CRITICAL RESPONSE',
@@ -59,19 +59,19 @@ export const AssignIncidentModal: React.FC = () => {
   const currentStageIndex = workflowStages.indexOf(currentAssignment.workflowStage);
 
   const availableTeams = [
-    'USCG Gulf Strike Team',
-    'NOAA HAZMAT Scientific Support',
-    'Copernicus Marine Rapid Response',
-    'EPA Region 6 Response Center',
-    'Clean Gulf Associates (Industry Co-op)',
+    'Indian Coast Guard (ICG) Rapid Pollution Response Team',
+    'INCOIS Marine HAZMAT & OSTM Forensics',
+    'Directorate General of Shipping (DGS) Port State Control',
+    'ISRO / NRSC Satellite Coastal Monitoring Cell',
+    'ONGC / Offshore Oil Spill Industry Task Force',
   ];
 
   const availableResponders: Record<string, string[]> = {
-    'USCG Gulf Strike Team': ['Cmdr. Vikram Malhotra', 'Lt. Arjun Verma', 'Duty Officer Sector NOLA'],
-    'NOAA HAZMAT Scientific Support': ['Dr. Ananya Sharma', 'Dr. Rohan Iyer', 'Regional Scientific Coordinator'],
-    'Copernicus Marine Rapid Response': ['Dr. Rajesh Nair', 'Analyst Marine Unit 3'],
-    'EPA Region 6 Response Center': ['On-Scene Coordinator (OSC)', 'Enforcement Lead TX/LA'],
-    'Clean Gulf Associates (Industry Co-op)': ['Rapid Boom Task Force Lead', 'Skimmer Ops Dispatch'],
+    'Indian Coast Guard (ICG) Rapid Pollution Response Team': ['Cmdr. Vikram Malhotra', 'Lt. Arjun Verma', 'Duty Ops Officer MRCC Mumbai'],
+    'INCOIS Marine HAZMAT & OSTM Forensics': ['Dr. Ananya Sharma', 'Dr. Rohan Iyer', 'OSTM Senior Scientist'],
+    'Directorate General of Shipping (DGS) Port State Control': ['Principal Officer MMD Mumbai', 'Capt. K. S. Rathore (PSC Lead)'],
+    'ISRO / NRSC Satellite Coastal Monitoring Cell': ['Dr. Rajesh Nair', 'Lead Scientist Ocean Applications'],
+    'ONGC / Offshore Oil Spill Industry Task Force': ['Offshore Safety Lead (Mumbai High)', 'Skimmer Operations Dispatch'],
   };
 
   const handleSaveAssignment = (e: React.FormEvent) => {

@@ -276,7 +276,7 @@ const INITIAL_NOTIFICATIONS: NotificationItem[] = [
     id: 'notif-04',
     type: 'system',
     title: 'Metocean Feeds Synchronized',
-    description: 'NOAA GFS 0.25° wind field and HYCOM 1/12° ocean surface velocity matrices successfully updated.',
+    description: 'INCOIS OSTM / GFS wind field and ocean surface velocity matrices successfully updated.',
     timestamp: '09:00 UTC',
     read: true,
   },
@@ -286,7 +286,7 @@ const INITIAL_COPILOT_MESSAGES: CopilotMessage[] = [
   {
     id: 'copilot-01',
     sender: 'assistant',
-    text: 'POSEIDON Maritime Intelligence Copilot online. Active investigation: PSDN-2026-00142 (Mississippi Canyon slick, 18.6 km²). 4 candidate vessels evaluated; MV OCEAN STAR identified with 87% attribution confidence. Select an action below or ask a question.',
+    text: 'POSEIDON Maritime Intelligence Copilot online (Indian EEZ & ICG Operational Clearance). Active incident: PSDN-2026-00142 (18.6 km² offshore slick). 4 candidate vessels evaluated; MV OCEAN STAR identified with 87% attribution confidence. Ready for ICG Strike Team & DG Shipping enforcement tasking.',
     timestamp: '14:30 UTC',
     suggestedActions: [
       { label: 'Inspect Prime Candidate', actionType: 'inspect_candidate', payload: 'VESSEL-9481923' },

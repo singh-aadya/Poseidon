@@ -26,7 +26,7 @@ export const RightIntelligencePanel: React.FC = () => {
   const inc = getActiveIncident();
   const { currentUser, assignments, setAssignIncidentModalIncidentId } = usePoseidonStore();
   const assignment = assignments[inc.id] || {
-    assignedTeam: 'USCG Gulf Strike Team',
+    assignedTeam: 'Indian Coast Guard (ICG) Pollution Response Team',
     assignedResponder: 'Cmdr. Vikram Malhotra',
     workflowStage: 'Assigned',
     escalationLevel: 'CRITICAL RESPONSE',

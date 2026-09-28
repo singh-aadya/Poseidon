@@ -136,8 +136,8 @@ export const TopNav: React.FC = () => {
               <span className="font-sans text-sm sm:text-base font-bold tracking-tight text-white shrink-0">
                 POSEIDON
               </span>
-              <span className="hidden min-[1600px]:inline text-xs text-slate-300 font-normal truncate max-w-[190px]">
-                Marine Oil Spill Monitoring
+              <span className="hidden min-[1550px]:inline text-xs text-[#93C5FD] font-normal truncate max-w-[240px]">
+                Indian EEZ Marine Pollution Intel
               </span>
             </div>
           </div>

@@ -163,7 +163,7 @@ If you are explaining POSEIDON to someone with no maritime or satellite backgrou
 > 
 > POSEIDON’s ensemble forecasting projects the slick forward over the next 48 hours. It simulates spreading, weathering, and shoreline risk.
 > 
-> The model projects the slick will drift northeast, coming within 19 kilometers of the sensitive Chandeleur barrier islands, giving coast guards crucial lead time to deploy containment booms."
+> The model projects the slick will drift northeast, coming within 19 kilometers of the sensitive coastal barrier islands, giving Indian Coast Guard response vessels crucial lead time to deploy containment booms."
 
 ---
 
@@ -175,7 +175,7 @@ If you are explaining POSEIDON to someone with no maritime or satellite backgrou
 > **[SPOKEN]**:  
 > "Finally, POSEIDON compiles every piece of data — satellite passes, neural network masks, metocean vectors, and ship speed logs — into an **audit-ready Forensic Evidence Dossier**.
 > 
-> With one click, incident commanders can dispatch the US Coast Guard Strike Team and export formal reports for international maritime courts and flag-state authorities.
+> With one click, incident commanders can dispatch the **Indian Coast Guard Pollution Response Strike Team**, alert the **Directorate General of Shipping (DGS)** for port state detention, and export formal reports under the Merchant Shipping Act 1958 and MARPOL 73/78.
 > 
 > In less than five minutes, we went from an anonymous black blob on a satellite picture to an identified ship, a documented crime, and an active coastal defense plan."
 

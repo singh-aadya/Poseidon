@@ -156,15 +156,16 @@ export const PublicInfoWorkspace: React.FC = () => {
           </nav>
 
           {/* Quick Contact Box */}
-          <div className="p-3 m-2 rounded-sm border border-slate-200 bg-slate-50 text-[11px] text-slate-600">
-            <div className="font-bold text-slate-800 flex items-center gap-1">
+          <div className="p-3 m-2 rounded-sm border border-orange-200 bg-orange-50/70 text-[11px] text-slate-600">
+            <div className="font-bold text-orange-950 flex items-center gap-1">
               <Phone className="h-3 w-3 text-red-600" />
-              <span>Marine Pollution Hotline</span>
+              <span>Indian Marine Pollution Hotline</span>
             </div>
-            <p className="mt-1 text-[10px] text-slate-500 leading-relaxed">
-              To report an active spill sighting in US waters, contact USCG NRC:
+            <p className="mt-1 text-[10px] text-slate-600 leading-relaxed">
+              Report active oil spills in Indian EEZ to Indian Coast Guard (ICG):
             </p>
-            <div className="mt-1 font-mono font-bold text-slate-800">1-800-424-8802</div>
+            <div className="mt-1 font-mono font-bold text-red-700 text-xs">1554 (Toll-Free)</div>
+            <div className="text-[10px] text-slate-500 font-mono mt-0.5">MRCC Mumbai: +91-22-2438-8065</div>
           </div>
         </aside>
 
@@ -217,30 +218,30 @@ export const PublicInfoWorkspace: React.FC = () => {
 
               {/* What POSEIDON Monitors */}
               <div className="rounded-sm border border-slate-200 bg-white p-4 sm:p-5 shadow-2xs">
-                <h3 className="font-bold text-xs sm:text-sm text-slate-900 mb-2">Monitored Marine Domains</h3>
+                <h3 className="font-bold text-xs sm:text-sm text-slate-900 mb-2">Monitored Indian & Regional Marine Domains</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-slate-600">
                   <div className="flex items-start gap-2">
                     <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
                     <div>
-                      <span className="font-semibold text-slate-800">Offshore Energy Infrastructure:</span> Deepwater drilling rigs, production platforms, subsea pipelines, and FPSO units in the Gulf of Mexico, North Sea, and Persian Gulf.
+                      <span className="font-semibold text-slate-800">Offshore Energy Basins:</span> Mumbai High Offshore fields, Bassein & Satellite platforms, Gulf of Khambhat, Krishna-Godavari (KG-D6) Deepwater Basin, and SPM crude offloading berths at Vadinar and Sikka.
                     </div>
                   </div>
                   <div className="flex items-start gap-2">
                     <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
                     <div>
-                      <span className="font-semibold text-slate-800">High-Density Maritime Corridors:</span> Traffic separation schemes (TSS) in the Straits of Malacca, Singapore, Dover, and Florida Straits where illegal bilge dumping occurs.
+                      <span className="font-semibold text-slate-800">Critical Shipping Corridors:</span> International Shipping Lanes (ISL) off southern Sri Lanka, Six Degree Channel (Great Channel near Indira Point, A&N Islands), Nine Degree Channel (Lakshadweep), and Gulf of Kutch tanker fairways.
                     </div>
                   </div>
                   <div className="flex items-start gap-2">
                     <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
                     <div>
-                      <span className="font-semibold text-slate-800">Sensitive Coastal Ecosystems:</span> NOAA Environmental Sensitivity Index (ESI) Tier 8–10 estuaries, salt marshes, coral reefs, and marine protected areas.
+                      <span className="font-semibold text-slate-800">Ecologically Sensitive Marine Zones (ESZs):</span> Gulf of Mannar Marine National Park & Biosphere Reserve, Palk Bay dugong habitats, Sundarbans mangrove delta, Lakshadweep coral atolls, and Gahirmatha turtle sanctuaries.
                     </div>
                   </div>
                   <div className="flex items-start gap-2">
                     <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
                     <div>
-                      <span className="font-semibold text-slate-800">Natural Hydrocarbon Seeps:</span> Baseline cataloging of recurring natural cold seeps (e.g. Green Canyon seeps) to prevent false operational alarms.
+                      <span className="font-semibold text-slate-800">Statutory Regulatory Mandates:</span> National Oil Spill Disaster Contingency Plan (NOSDCP), Merchant Shipping Act 1958 (Part XIA), and Central Pollution Control Board (CPCB) marine water quality criteria.
                     </div>
                   </div>
                 </div>
@@ -665,38 +666,74 @@ export const PublicInfoWorkspace: React.FC = () => {
               </div>
 
               {/* Emergency Contacts Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div className="border border-red-300 bg-red-50/50 rounded-sm p-4">
-                  <div className="text-xs font-bold text-red-900 uppercase tracking-wider mb-1">
-                    United States Waters (EEZ)
+                  <div className="text-xs font-bold text-red-900 uppercase tracking-wider mb-1 flex items-center justify-between">
+                    <span>Indian Waters & Exclusive Economic Zone (EEZ)</span>
+                    <span className="text-[10px] bg-red-200 text-red-900 px-1.5 py-0.2 rounded font-mono">NOSDCP MANDATE</span>
                   </div>
-                  <div className="text-base font-bold text-slate-900">National Response Center (NRC)</div>
-                  <div className="mt-2 space-y-1 text-xs text-slate-700">
+                  <div className="text-base font-bold text-slate-900">
+                    Indian Coast Guard (ICG) — National Pollution Response Centre
+                  </div>
+                  <div className="mt-2 space-y-1.5 text-xs text-slate-700">
                     <div>
-                      <span className="font-semibold">24/7 Toll-Free Hotline:</span>{' '}
-                      <span className="font-mono font-bold text-red-700">1-800-424-8802</span>
+                      <span className="font-semibold">24/7 National Emergency Hotline:</span>{' '}
+                      <span className="font-mono font-bold text-red-700 text-sm">1554 (Toll-Free All-India)</span>
                     </div>
                     <div>
-                      <span className="font-semibold">Direct Washington DC:</span>{' '}
-                      <span className="font-mono font-bold">202-267-2675</span>
+                      <span className="font-semibold">MRCC Mumbai (West Coast / Arabian Sea):</span>{' '}
+                      <span className="font-mono font-bold">+91-22-2438-8065 / +91-22-2431-6558</span>
                     </div>
                     <div>
-                      <span className="font-semibold">Email:</span> nrc@uscg.mil
+                      <span className="font-semibold">MRCC Chennai (East Coast / Bay of Bengal):</span>{' '}
+                      <span className="font-mono font-bold">+91-44-2346-0405</span>
+                    </div>
+                    <div>
+                      <span className="font-semibold">MRCC Port Blair (Andaman & Nicobar Islands):</span>{' '}
+                      <span className="font-mono font-bold">+91-3192-245530</span>
+                    </div>
+                    <div>
+                      <span className="font-semibold">Official Email:</span>{' '}
+                      <span className="font-mono">ops-icg@nic.in · pollutionresponse-icg@nic.in</span>
+                    </div>
+                    <div>
+                      <span className="font-semibold">Marine Distress Radio:</span> VHF Channel 16 (156.8 MHz) / DSC 70 Calling
                     </div>
                   </div>
                 </div>
 
                 <div className="border border-sky-300 bg-sky-50/50 rounded-sm p-4">
-                  <div className="text-xs font-bold text-sky-900 uppercase tracking-wider mb-1">
-                    International & European Waters
+                  <div className="text-xs font-bold text-sky-900 uppercase tracking-wider mb-1 flex items-center justify-between">
+                    <span>National Scientific Forensics & Maritime Administration</span>
+                    <span className="text-[10px] bg-sky-200 text-sky-900 px-1.5 py-0.2 rounded font-mono">MoES / MoPSW / ISRO</span>
                   </div>
-                  <div className="text-base font-bold text-slate-900">EMSA / IMO Incident Protocol</div>
-                  <div className="mt-2 space-y-1 text-xs text-slate-700">
+                  <div className="text-base font-bold text-slate-900">
+                    INCOIS & Directorate General of Shipping (DGS)
+                  </div>
+                  <div className="mt-2 space-y-1.5 text-xs text-slate-700">
                     <div>
-                      <span className="font-semibold">EMSA CleanSeaNet Ops:</span> csn@emsa.europa.eu
+                      <span className="font-semibold">INCOIS (Ministry of Earth Sciences, Hyderabad):</span>
+                      <div className="text-slate-600 pl-2">
+                        • Oil Spill Trajectory Modeling (OSTM) & SARAT Advisory
+                        <br />
+                        • Email: <span className="font-mono text-sky-900 font-semibold">ostm@incois.gov.in</span> | INCOIS Ocean Portal
+                      </div>
                     </div>
-                    <div>
-                      <span className="font-semibold">IMO MARPOL Reporting:</span> Standard Marine Communication Phrases (SMCP) via VHF Ch 16 / DSC.
+                    <div className="pt-1 border-t border-sky-200/60">
+                      <span className="font-semibold">Directorate General of Shipping (DGS, Mumbai):</span>
+                      <div className="text-slate-600 pl-2">
+                        • Port State Control (PSC) & Merchant Shipping Act 1958 (Part XIA)
+                        <br />
+                        • Email: <span className="font-mono text-sky-900 font-semibold">dgship-dgs@nic.in</span> | Tel: +91-22-2575-2040
+                      </div>
+                    </div>
+                    <div className="pt-1 border-t border-sky-200/60">
+                      <span className="font-semibold">ISRO / NRSC Coastal Emergency Ingestion:</span>
+                      <div className="text-slate-600 pl-2">
+                        • National Remote Sensing Centre (NRSC) Disaster Support
+                        <br />
+                        • Multi-mission SAR: EOS-04 (RISAT-1A) & Sentinel-1 constellation
+                      </div>
                     </div>
                   </div>
                 </div>

@@ -9,24 +9,24 @@ export const SystemStatusModal: React.FC = () => {
 
   const pipelines = [
     {
-      name: 'Sentinel-1 C-Band SAR Ingestion',
-      source: 'ESA Copernicus Open Access Hub / AWS Registry',
+      name: 'Satellite SAR Constellation (Sentinel-1 & EOS-04)',
+      source: 'ISRO NRSC Ocean Ingest / ESA Copernicus Hub',
       status: 'Operational',
       latency: '2.4 min avg ingest',
       lastSync: '14:22 UTC (Pass 148)',
       icon: Satellite,
     },
     {
-      name: 'AIS Telemetry Stream',
-      source: 'Global S-AIS & Terrestrial Mesh (Spire/Orbcomm)',
+      name: 'AIS Telemetry Stream & Maritime Domain Awareness',
+      source: 'DG Shipping National AIS Mesh & S-AIS (Spire/Orbcomm)',
       status: 'Operational',
       latency: '14s feed interval',
       lastSync: '14:32 UTC (Active)',
       icon: Radio,
     },
     {
-      name: 'Oceanographic Forcing Models',
-      source: 'NOAA GFS 0.25° Wind + HYCOM Global 1/12° Current',
+      name: 'Oceanographic Metocean Forcing',
+      source: 'INCOIS OSTM / NOAA GFS Wind + HYCOM 1/12° Current',
       status: 'Operational',
       latency: 'Hourly 4D assimilation',
       lastSync: '12:00 UTC cycle',
