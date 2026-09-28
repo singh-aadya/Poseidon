@@ -249,7 +249,7 @@ const INITIAL_NOTIFICATIONS: NotificationItem[] = [
     id: 'notif-01',
     type: 'detection',
     title: 'SAR Anomaly: High-confidence dampening',
-    description: 'Sentinel-1A SAR descending pass confirms -24.8 dB backscatter reduction in MC Block 242 (18.6 km²).',
+    description: 'Sentinel-1A SAR descending pass confirms -24.8 dB backscatter reduction in Mumbai High Sector (18.6 km²).',
     timestamp: '14:28 UTC',
     incidentId: 'PSDN-2026-00142',
     read: false,
@@ -267,7 +267,7 @@ const INITIAL_NOTIFICATIONS: NotificationItem[] = [
     id: 'notif-03',
     type: 'forecast',
     title: 'Shoreline Trajectory Alert',
-    description: 'HYCOM/GFS ensemble run indicates 48h trajectory approaching Chandeleur Sound barrier islands (19 km clearance).',
+    description: 'INCOIS OSTM / IMD ensemble run indicates 48h trajectory approaching Maharashtra coastal buffer (22 km clearance).',
     timestamp: '11:15 UTC',
     incidentId: 'PSDN-2026-00142',
     read: false,
@@ -286,7 +286,7 @@ const INITIAL_COPILOT_MESSAGES: CopilotMessage[] = [
   {
     id: 'copilot-01',
     sender: 'assistant',
-    text: 'POSEIDON Maritime Intelligence Copilot online (Indian EEZ & ICG Operational Clearance). Active incident: PSDN-2026-00142 (18.6 km² offshore slick). 4 candidate vessels evaluated; MV OCEAN STAR identified with 87% attribution confidence. Ready for ICG Strike Team & DG Shipping enforcement tasking.',
+    text: 'POSEIDON Maritime Intelligence Copilot online (Indian EEZ & ICG Operational Clearance). Active incident: PSDN-2026-00142 (18.6 km² Mumbai High slick). 4 candidate vessels evaluated; MV OCEAN STAR identified with 87% attribution confidence. Ready for ICG Strike Team & DG Shipping enforcement tasking.',
     timestamp: '14:30 UTC',
     suggestedActions: [
       { label: 'Inspect Prime Candidate', actionType: 'inspect_candidate', payload: 'VESSEL-9481923' },
@@ -524,7 +524,7 @@ export const usePoseidonStore = create<PoseidonState>((set, get) => ({
       lower.includes('where')
     ) {
       replyText =
-        'Reverse drift trajectory calculated using HYCOM 0.72 kn surface currents and GFS 14.2 kn winds places the probable discharge point at 27.72° N, 90.62° W (±1.4 km, 82% confidence boundary) approximately 12.4 hours prior to SAR observation.';
+        'Reverse drift trajectory calculated using INCOIS OSTM 0.72 kn surface currents and IMD 14.2 kn winds places the probable discharge point at 19.34° N, 71.22° E (±1.4 km, 82% confidence boundary in Mumbai High Sector) approximately 12.4 hours prior to SAR observation.';
       actions = [{ label: 'Focus Reconstructed Origin', actionType: 'show_origin' }];
     } else if (
       lower.includes('forecast') ||
@@ -534,7 +534,7 @@ export const usePoseidonStore = create<PoseidonState>((set, get) => ({
       lower.includes('where is it going')
     ) {
       replyText =
-        'Forward Lagrangian trajectory predicts east-northeastward advection towards Chandeleur barrier islands at 0.78–0.90 kn. 48h horizon shows 28.4% shoreline impact probability with closest approach of 19 km.';
+        'Forward Lagrangian trajectory predicts east-northeastward advection towards Maharashtra / Raigad coastal buffer at 0.78–0.90 kn. 48h horizon shows closest approach of 22 km to coastal mangroves.';
       actions = [{ label: 'View 48H Forecast Cone', actionType: 'forecast_risk' }];
     } else if (
       lower.includes('satellite') ||

@@ -52,21 +52,21 @@ function createSatelliteSwath(centerLng: number, centerLat: number): [number, nu
 }
 
 const BACKGROUND_AIS_VESSELS: [number, number, string][] = [
-  [-90.82, 28.15, 'BULK CARRIER PACIFIC'],
-  [-90.15, 28.25, 'TUG NAVIGATOR'],
-  [-89.95, 27.65, 'CREW VESSEL EXPRESS'],
-  [-90.75, 27.45, 'CONTAINERSHIP MSC LAURA'],
-  [-91.05, 27.95, 'OFFSHORE SUPPLY DEFENDER'],
-  [-89.75, 28.05, 'CHEMICAL TANKER STOLT'],
-  [-90.55, 28.32, 'FISHING VESSEL BLUEFIN'],
-  [-90.25, 27.48, 'BARGE TOW BIG HORSE'],
-  [-89.85, 27.82, 'RESEARCH SURVEY FALOR'],
-  [-91.12, 27.62, 'GENERAL CARGO ARCTIC'],
-  [-90.35, 28.42, 'PILOT BOAT BRAVO'],
-  [-90.95, 28.02, 'SUPPLY VESSEL EDISON'],
-  [-89.65, 27.52, 'TANKER EAGLE BRASILIA'],
-  [-90.68, 27.35, 'TUG MISSISSIPPI TRADER'],
-  [-89.9, 28.38, 'CREW TENDER GULF DISCOVERY'],
+  [71.85, 19.15, 'ICGS SAMUDRA PRAHARI'],
+  [72.25, 18.95, 'JNPT PILOT LAUNCH 02'],
+  [71.12, 19.55, 'ONGC TENDER SAGAR VIKAS'],
+  [71.65, 19.25, 'TUG MAHARASHTRA STAR'],
+  [72.45, 19.05, 'CONTAINERSHIP MAERSK BHARAT'],
+  [70.95, 19.10, 'CRUDE TANKER RATNA SHALINI'],
+  [71.30, 19.70, 'OFFSHORE SUPPLY DHANSHREE'],
+  [72.10, 19.40, 'BULK CARRIER APJ AKHILESH'],
+  [71.75, 18.85, 'CHEMICAL TANKER STOLT GANGA'],
+  [72.55, 18.75, 'FISHING TRAWLER MAHALAXMI II'],
+  [70.70, 18.95, 'CONTAINER SHIP EVER GULF'],
+  [71.95, 19.65, 'RESEARCH VESSEL SAGAR NIDHI'],
+  [72.35, 19.30, 'COASTAL FREIGHTER SAGAR DEEP'],
+  [71.05, 19.35, 'ICGS VAJRA PATROL'],
+  [72.68, 18.92, 'MUMBAI HARBOUR TUG SAROJ'],
 ];
 
 // High-reliability public, open-access maritime and GIS basemaps (NOAA, GEBCO, Esri, OSM)
@@ -235,8 +235,8 @@ function parseInitialHash(): { center: [number, number]; zoom: number; incidentI
     const coordMatch = hash.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*),(\d+\.?\d*)z/);
     const incidentMatch = hash.match(/incident=([A-Za-z0-9_-]+)/);
 
-    let center: [number, number] = [15.0, 25.0];
-    let zoom = 2.5;
+    let center: [number, number] = [71.45, 19.45];
+    let zoom = 9.2;
 
     if (coordMatch) {
       const lng = parseFloat(coordMatch[1]);
@@ -252,7 +252,7 @@ function parseInitialHash(): { center: [number, number]; zoom: number; incidentI
 
     return { center, zoom, incidentId };
   } catch {
-    return { center: [15.0, 25.0], zoom: 2.5, incidentId: null };
+    return { center: [71.45, 19.45], zoom: 9.2, incidentId: null };
   }
 }
 
@@ -1359,7 +1359,7 @@ export const MapView: React.FC = () => {
 
       {/* Institutional Data Attribution Banner */}
       <div className="absolute right-3.5 bottom-2 z-10 pointer-events-none rounded border border-slate-300 bg-white/90 px-2 py-0.5 text-[10px] font-sans text-slate-600 shadow-2xs">
-        <span className="font-semibold text-slate-700">Data sources:</span> Copernicus Sentinel-1 · Global AIS · NOAA/HYCOM · <span className="text-slate-500">Demonstration data</span>
+        <span className="font-semibold text-slate-700">Data sources:</span> ISRO EOS-04 · Copernicus Sentinel-1 · Indian AIS / DG Shipping · INCOIS OSTM · <span className="text-slate-500">Demonstration data</span>
       </div>
     </div>
   );

@@ -63,7 +63,7 @@ export const EvidencePanel: React.FC = () => {
     {
       step: 5,
       title: 'Drift Reconstruction',
-      finding: 'Lagrangian hindcast (HYCOM 0.72 kn currents + GFS 14.2 kn winds) traces 24h reverse advection.',
+      finding: 'Lagrangian hindcast (INCOIS OSTM 0.72 kn currents + IMD 14.2 kn winds) traces 24h reverse advection.',
       status: 'RECONSTRUCTED',
       action: () => {
         setMapIntelligenceMode('analysis');
@@ -73,7 +73,7 @@ export const EvidencePanel: React.FC = () => {
     {
       step: 6,
       title: 'Origin Region',
-      finding: 'Particles converge on 4.2 km² source probability region at 27.72°N, 90.62°W (82% confidence).',
+      finding: 'Particles converge on 4.2 km² source probability region in Mumbai High Sector at 19.34°N, 71.22°E (82% confidence).',
       status: 'CONVERGED',
       action: () => {
         setMapIntelligenceMode('analysis');
@@ -103,7 +103,7 @@ export const EvidencePanel: React.FC = () => {
     {
       step: 9,
       title: 'Forecast',
-      finding: 'Ensemble trajectory models 48h spreading (clearing Chandeleur Sound by 19 km).',
+      finding: 'Ensemble trajectory models 48h spreading (approaching Maharashtra coastal buffer, 22 km clearance).',
       status: 'PROJECTED',
       action: () => {
         setActiveMode('forecast');

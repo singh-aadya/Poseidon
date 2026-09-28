@@ -72,15 +72,15 @@ If you are explaining POSEIDON to someone with no maritime or satellite backgrou
 ### Scene 2: Satellite Detection (0:35 – 1:10)
 
 - **[VISUAL]**: Click on **Live Map** or click **"RUN DEMO"** in the top navigation bar.
-- **[ACTION]**: Zoom in on the highlighted oil slick polygon in the Mississippi Canyon block.
+- **[ACTION]**: Zoom in on the highlighted oil slick polygon in the Mumbai High offshore sector (Arabian Sea, Indian EEZ).
 - **[POINTER]**: Point to the dark satellite radar overlay and the slick geometry.
 
 > **[SPOKEN]**:  
-> "Our journey starts 700 kilometers above the Earth. European Space Agency **Sentinel-1 radar satellites** pass over the Gulf. 
+> "Our journey starts 700 kilometers above the Earth. European Space Agency **Sentinel-1** and ISRO **EOS-04** radar satellites pass over the Arabian Sea. 
 > 
-> Because radar penetrates clouds and works in total darkness, it spots this anomalous patch: an 18.6-square-kilometer slick dampening surface capillary waves.
+> Because radar penetrates clouds and works in total darkness, it spots this anomalous patch: an 18.6-square-kilometer slick dampening surface capillary waves in the Mumbai High offshore basin.
 > 
-> On the left-hand panel, POSEIDON logs this as incident **PSDN-2026-00142**, flagging an immediate **94% detection confidence**."
+> On the left-hand panel, POSEIDON logs this as incident **PSDN-2026-00142 (Mumbai High Deepwater Slick)**, flagging an immediate **94% detection confidence**."
 
 ---
 
@@ -104,7 +104,7 @@ If you are explaining POSEIDON to someone with no maritime or satellite backgrou
 > **[SPOKEN]**:  
 > "Next, we need to know: *When did this oil enter the water?*  
 > 
-> POSEIDON uses thermodynamic weathering models — factoring in water temperature, evaporation, film thickness, and emulsification — to determine that this slick is between **8 and 14 hours old**, with a mean age of 11 hours.
+> POSEIDON uses thermodynamic weathering models — factoring in Arabian Sea water temperature (28.6°C), evaporation, film thickness, and emulsification — to determine that this slick is between **8 and 14 hours old**, with a mean age of 11 hours.
 > 
 > This provides our vital temporal anchor: the oil was dumped between **20:00 and 02:00 UTC**."
 
@@ -118,9 +118,9 @@ If you are explaining POSEIDON to someone with no maritime or satellite backgrou
 > **[SPOKEN]**:  
 > "Oil slicks don't stay still; they are swept by ocean currents and winds. The location where the satellite spotted the slick is *not* where it was dumped.
 > 
-> POSEIDON couples real-time **HYCOM ocean currents** and **NOAA wind models** in a reverse Lagrangian drift simulation. We literally rewind the ocean 12 hours.
+> POSEIDON couples real-time **INCOIS ocean currents** and **IMD marine wind models** in a reverse Lagrangian drift simulation. We literally rewind the ocean 12 hours.
 > 
-> The simulation converges onto this 4.2-square-kilometer high-probability discharge zone, located 14 kilometers southwest of the current slick position."
+> The simulation converges onto this 4.2-square-kilometer high-probability discharge zone in the Mumbai High Sector, located 14 kilometers southwest of the current slick position."
 
 ---
 
@@ -142,10 +142,10 @@ If you are explaining POSEIDON to someone with no maritime or satellite backgrou
 - **[ACTION]**: Expand the **'Why this vessel?'** evidence breakdown card and click **'Inspect Vessel Specs'** to open the modal.
 
 > **[SPOKEN]**:  
-> "Look at Candidate #1: the bulk carrier **MV OCEAN STAR**, flagged at **87% attribution probability**.
+> "Look at Candidate #1: the crude oil tanker **MV OCEAN STAR** (en route from Basrah to JNPT Port, Mumbai), flagged at **87% attribution probability**.
 > 
 > Why this vessel? POSEIDON highlights three critical anomalies:
-> 1. **Zero-Distance Spatial Match:** The vessel passed within just 420 meters of the calculated discharge centroid.
+> 1. **Zero-Distance Spatial Match:** The vessel passed within just 420 meters of the calculated discharge centroid in the Mumbai High Sector.
 > 2. **Suspicious Speed Drop:** The ship abruptly slowed from 14.1 knots down to 8.2 knots — a textbook pattern for deliberate bilge pumping.
 > 3. **The Transponder Blackout:** Right at the discharge point, the vessel experienced an **18-minute AIS blackout** before suddenly accelerating again.
 > 
@@ -163,7 +163,7 @@ If you are explaining POSEIDON to someone with no maritime or satellite backgrou
 > 
 > POSEIDON’s ensemble forecasting projects the slick forward over the next 48 hours. It simulates spreading, weathering, and shoreline risk.
 > 
-> The model projects the slick will drift northeast, coming within 19 kilometers of the sensitive coastal barrier islands, giving Indian Coast Guard response vessels crucial lead time to deploy containment booms."
+> The model projects the slick will drift east-northeast, coming within 22 kilometers of the sensitive Maharashtra coastal mangrove buffer, giving Indian Coast Guard response vessels crucial lead time to deploy containment booms."
 
 ---
 

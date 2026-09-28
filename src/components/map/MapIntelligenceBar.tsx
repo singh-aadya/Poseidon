@@ -131,7 +131,11 @@ export const MapIntelligenceBar: React.FC = () => {
             <span className="text-slate-300">|</span>
             <div className="flex items-center gap-1 text-[11px] text-amber-800 bg-amber-50/80 px-2 py-0.5 rounded border border-amber-200">
               <span className="font-semibold">Reconstructed Origin:</span>
-              <span className="font-mono">27.72°N, 90.62°W</span>
+              <span className="font-mono">
+                {incident.breadcrumbs && incident.breadcrumbs.length > 0
+                  ? `${Math.abs(incident.breadcrumbs[0].lat).toFixed(2)}°${incident.breadcrumbs[0].lat >= 0 ? 'N' : 'S'}, ${Math.abs(incident.breadcrumbs[0].lng).toFixed(2)}°${incident.breadcrumbs[0].lng >= 0 ? 'E' : 'W'}`
+                  : '19.34°N, 71.22°E'}
+              </span>
               <span className="text-[10px] font-bold text-amber-700">(82% conf)</span>
             </div>
           </>
