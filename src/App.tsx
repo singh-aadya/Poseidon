@@ -17,10 +17,12 @@ import { PublicInfoWorkspace } from './components/public/PublicInfoWorkspace';
 import { AlertsCenter } from './components/alerts/AlertsCenter';
 import { AssignIncidentModal } from './components/alerts/AssignIncidentModal';
 import { AdminAuditModal } from './components/admin/AdminAuditModal';
+import { LandingPage } from './components/landing/LandingPage';
 
 export const App: React.FC = () => {
   const {
     activeMode,
+    setActiveMode,
     leftPanelOpen,
     toggleLeftPanel,
     setLeftPanelOpen,
@@ -34,6 +36,29 @@ export const App: React.FC = () => {
       setLeftPanelOpen(false);
     }
   }, [setLeftPanelOpen]);
+
+  // Synchronize browser history / URL hash changes with activeMode
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash;
+      if (hash.startsWith('#/overview') && activeMode !== 'overview') {
+        setActiveMode('overview');
+      } else if (hash.startsWith('#/map') && activeMode === 'overview') {
+        setActiveMode('detection');
+      } else if (hash.startsWith('#/analytics') && activeMode !== 'analytics') {
+        setActiveMode('analytics');
+      } else if (hash.startsWith('#/public-info') && activeMode !== 'public-info') {
+        setActiveMode('public-info');
+      }
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, [activeMode, setActiveMode]);
+
+  // Dedicated Cinematic Landing Page for 'overview' mode
+  if (activeMode === 'overview') {
+    return <LandingPage />;
+  }
 
   return (
     <div className="flex h-screen w-full max-w-full flex-col overflow-hidden bg-[#F5F7F9] text-gray-900 font-sans box-border">

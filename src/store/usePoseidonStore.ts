@@ -300,7 +300,7 @@ const INITIAL_COPILOT_MESSAGES: CopilotMessage[] = [
 export const usePoseidonStore = create<PoseidonState>((set, get) => ({
   incidents: MOCK_INCIDENTS,
   activeIncidentId: 'PSDN-2026-00142',
-  activeMode: 'detection',
+  activeMode: typeof window !== 'undefined' && window.location.hash.startsWith('#/map') ? 'detection' : 'overview',
   selectedCandidateId: 'VESSEL-9481923',
   selectedForecastHorizon: 24,
 
@@ -386,6 +386,15 @@ export const usePoseidonStore = create<PoseidonState>((set, get) => ({
 
   setActiveMode: (mode: AppMode) => {
     set({ activeMode: mode });
+    if (typeof window !== 'undefined') {
+      if (mode === 'overview') {
+        window.location.hash = '#/overview';
+      } else if (mode === 'analytics') {
+        window.location.hash = '#/analytics';
+      } else if (mode === 'public-info') {
+        window.location.hash = '#/public-info';
+      }
+    }
   },
 
   setSelectedCandidateId: (id: string | null) => {
