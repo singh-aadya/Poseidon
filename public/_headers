@@ -1,0 +1,27 @@
+# Cloudflare Pages / Netlify Cache Configuration for POSEIDON PWA
+
+# HTML root and entry point: NEVER cache aggressively; always revalidate so users receive updates immediately
+/
+  Cache-Control: no-cache, no-store, must-revalidate
+  Pragma: no-cache
+  Expires: 0
+
+/index.html
+  Cache-Control: no-cache, no-store, must-revalidate
+  Pragma: no-cache
+  Expires: 0
+
+# Service Worker: NEVER cache HTTP; always revalidate byte checks
+/sw.js
+  Cache-Control: no-cache, no-store, must-revalidate
+  Pragma: no-cache
+  Expires: 0
+  Service-Worker-Allowed: /
+
+# Web App Manifest
+/manifest.json
+  Cache-Control: no-cache, must-revalidate
+
+# Vite Hashed Production Assets: Immutable and safe to cache for 1 year
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
