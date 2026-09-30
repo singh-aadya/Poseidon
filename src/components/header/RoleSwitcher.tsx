@@ -65,7 +65,7 @@ export const RoleSwitcher: React.FC = () => {
             {currentUser.name}
           </span>
           <span
-            className={`text-[9px] font-mono uppercase px-1 rounded-xs border mt-0.5 ${getRoleBadgeStyle(
+            className={`hidden sm:inline text-[9px] font-mono uppercase px-1 rounded-xs border mt-0.5 ${getRoleBadgeStyle(
               currentUser.role
             )}`}
           >

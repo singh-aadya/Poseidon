@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { Map, ListFilter, BarChart3 } from 'lucide-react';
 import { usePoseidonStore } from './store/usePoseidonStore';
 import { TopNav } from './components/header/TopNav';
 import { SystemStatusModal } from './components/header/SystemStatusModal';
@@ -27,15 +28,20 @@ export const App: React.FC = () => {
     toggleLeftPanel,
     setLeftPanelOpen,
     rightPanelOpen,
+    toggleRightPanel,
+    setRightPanelOpen,
     notificationDrawerOpen,
     setNotificationDrawerOpen,
+    incidents,
   } = usePoseidonStore();
 
+  // On mobile/tablet, collapse both panels by default so the map is unobstructed
   useEffect(() => {
     if (typeof window !== 'undefined' && window.innerWidth < 1024) {
       setLeftPanelOpen(false);
+      setRightPanelOpen(false);
     }
-  }, [setLeftPanelOpen]);
+  }, [setLeftPanelOpen, setRightPanelOpen]);
 
   // Synchronize browser history / URL hash changes with activeMode
   useEffect(() => {
@@ -80,15 +86,15 @@ export const App: React.FC = () => {
             {/* Mobile Backdrop for Left Panel Drawer */}
             {leftPanelOpen && (
               <div
-                className="fixed inset-0 z-30 bg-black/40 lg:hidden transition-opacity"
+                className="fixed inset-0 top-12 z-30 bg-black/40 backdrop-blur-xs lg:hidden transition-opacity"
                 onClick={toggleLeftPanel}
                 aria-label="Close incident explorer"
               />
             )}
 
-            {/* Left Collapsible Incident Explorer: Drawer on mobile/tablet (< lg), Column on desktop (≥ lg) */}
+            {/* Left Collapsible Incident Explorer: Off-canvas drawer on mobile/tablet (< lg), Column on desktop (≥ lg) */}
             {leftPanelOpen && (
-              <div className="fixed inset-y-0 left-0 z-40 h-full w-full sm:w-80 max-w-[85vw] lg:relative lg:inset-auto lg:z-10 lg:w-72 xl:w-80 shrink-0 shadow-2xl lg:shadow-none transition-all duration-300">
+              <div className="fixed top-12 bottom-0 left-0 z-40 w-full sm:w-80 max-w-[85vw] lg:relative lg:top-0 lg:bottom-auto lg:z-10 lg:w-72 xl:w-80 shrink-0 shadow-2xl lg:shadow-none transition-all duration-300 flex flex-col">
                 <IncidentExplorer />
               </div>
             )}
@@ -99,11 +105,72 @@ export const App: React.FC = () => {
 
               {/* Interactive Guided Demo HUD */}
               <DemoInvestigationModal />
+
+              {/* Mobile/Tablet Quick View Switcher: Map | Incidents | Details */}
+              <div className="lg:hidden absolute bottom-12 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1 rounded-full border border-[#2F4F70] bg-[#102438]/95 px-1.5 py-1 shadow-2xl backdrop-blur-md select-none">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLeftPanelOpen(false);
+                    setRightPanelOpen(false);
+                  }}
+                  className={`flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-semibold transition cursor-pointer ${
+                    !leftPanelOpen && !rightPanelOpen
+                      ? 'bg-[#1769AA] text-white shadow-xs'
+                      : 'text-slate-300 hover:text-white'
+                  }`}
+                >
+                  <Map className="h-3.5 w-3.5" />
+                  <span>Map</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLeftPanelOpen(true);
+                    setRightPanelOpen(false);
+                  }}
+                  className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition cursor-pointer ${
+                    leftPanelOpen
+                      ? 'bg-[#1769AA] text-white shadow-xs'
+                      : 'text-slate-300 hover:text-white'
+                  }`}
+                >
+                  <ListFilter className="h-3.5 w-3.5" />
+                  <span>Incidents</span>
+                  <span className="rounded-full bg-[#1C3D5E] px-1.5 py-0.2 text-[10px] font-mono text-sky-200">
+                    {incidents.length}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRightPanelOpen(true);
+                    setLeftPanelOpen(false);
+                  }}
+                  className={`flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-semibold transition cursor-pointer ${
+                    rightPanelOpen
+                      ? 'bg-[#1769AA] text-white shadow-xs'
+                      : 'text-slate-300 hover:text-white'
+                  }`}
+                >
+                  <BarChart3 className="h-3.5 w-3.5" />
+                  <span>Details</span>
+                </button>
+              </div>
             </main>
 
-            {/* Right Collapsible Intelligence Panel: Bottom sheet on mobile (< md), column on tablet & desktop (≥ md) */}
+            {/* Mobile Backdrop for Right Panel on screens < lg */}
             {rightPanelOpen && (
-              <div className="fixed inset-x-0 bottom-9.5 z-30 max-h-[72vh] w-full max-w-full md:relative md:inset-auto md:z-10 md:h-full md:max-h-full md:w-80 lg:w-88 xl:w-96 shrink-0 shadow-2xl md:shadow-none transition-all duration-300 flex flex-col min-w-0">
+              <div
+                className="fixed inset-0 top-12 z-30 bg-black/40 backdrop-blur-xs lg:hidden transition-opacity"
+                onClick={toggleRightPanel}
+                aria-label="Close details panel"
+              />
+            )}
+
+            {/* Right Collapsible Intelligence Panel: Bottom sheet on mobile (< md), side sheet on tablet (md to < lg), column on desktop (≥ lg) */}
+            {rightPanelOpen && (
+              <div className="fixed inset-x-0 bottom-0 z-40 max-h-[72vh] w-full rounded-t-xl overflow-hidden shadow-2xl md:rounded-none md:inset-x-auto md:top-12 md:bottom-0 md:right-0 md:max-h-full md:w-88 lg:relative lg:top-0 lg:bottom-auto lg:right-auto lg:z-10 lg:h-full lg:w-88 xl:w-96 shrink-0 lg:shadow-none transition-all duration-300 flex flex-col min-w-0">
                 <RightIntelligencePanel />
               </div>
             )}

@@ -41,18 +41,19 @@ export const RightIntelligencePanel: React.FC = () => {
 
   return (
     <aside className="relative flex h-full w-full max-w-full flex-col md:border-l border-[#D1D5DB] bg-white text-gray-800 select-none shadow-sm box-border min-w-0">
-      {/* Mobile Bottom-Sheet Grab Handle & Close Bar */}
-      <div className="md:hidden flex items-center justify-between px-3.5 py-1.5 bg-[#F1F5F9] border-b border-[#E2E8F0] shrink-0">
+      {/* Mobile/Tablet Grab Handle & Close Bar */}
+      <div className="lg:hidden flex items-center justify-between px-3.5 py-2 bg-[#F1F5F9] border-b border-[#E2E8F0] shrink-0">
         <div className="flex items-center gap-2">
-          <div className="h-1 w-8 rounded-full bg-slate-400" />
-          <span className="font-semibold text-slate-700 text-[11px]">Active Incident Details</span>
+          <div className="h-1 w-8 rounded-full bg-slate-400 md:hidden" />
+          <span className="font-semibold text-slate-700 text-xs">Incident Intelligence & Dossier</span>
         </div>
         <button
           type="button"
           onClick={toggleRightPanel}
-          className="p-1 rounded text-slate-500 hover:text-slate-800 hover:bg-slate-200 transition"
-          title="Minimize details panel"
+          className="flex items-center gap-1 px-2 py-1 rounded text-xs text-slate-600 hover:text-slate-900 hover:bg-slate-200 transition font-medium cursor-pointer"
+          title="Close details panel"
         >
+          <span>Close</span>
           <X className="h-3.5 w-3.5" />
         </button>
       </div>

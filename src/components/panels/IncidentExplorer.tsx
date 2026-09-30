@@ -23,6 +23,7 @@ export const IncidentExplorer: React.FC = () => {
     setFilters,
     resetFilters,
     getFilteredIncidents,
+    setLeftPanelOpen,
     setRightPanelOpen,
     flyToCoords,
     toggleLeftPanel,
@@ -45,9 +46,12 @@ export const IncidentExplorer: React.FC = () => {
 
   const handleSelectIncident = (inc: Incident) => {
     setActiveIncidentId(inc.id);
-    setRightPanelOpen(true);
-    if (window.innerWidth < 1024) {
-      toggleLeftPanel();
+    flyToCoords(inc.coordinates, 10.4);
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+      setLeftPanelOpen(false);
+      setRightPanelOpen(true);
+    } else {
+      setRightPanelOpen(true);
     }
   };
 

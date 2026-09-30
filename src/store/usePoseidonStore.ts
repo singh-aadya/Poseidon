@@ -405,10 +405,40 @@ export const usePoseidonStore = create<PoseidonState>((set, get) => ({
     set({ selectedForecastHorizon: horizon });
   },
 
-  toggleLeftPanel: () => set((s) => ({ leftPanelOpen: !s.leftPanelOpen })),
-  toggleRightPanel: () => set((s) => ({ rightPanelOpen: !s.rightPanelOpen })),
-  setLeftPanelOpen: (open: boolean) => set({ leftPanelOpen: open }),
-  setRightPanelOpen: (open: boolean) => set({ rightPanelOpen: open }),
+  toggleLeftPanel: () =>
+    set((s) => {
+      const willOpen = !s.leftPanelOpen;
+      const isMobile = typeof window !== 'undefined' && window.innerWidth < 1024;
+      return {
+        leftPanelOpen: willOpen,
+        rightPanelOpen: isMobile && willOpen ? false : s.rightPanelOpen,
+      };
+    }),
+  toggleRightPanel: () =>
+    set((s) => {
+      const willOpen = !s.rightPanelOpen;
+      const isMobile = typeof window !== 'undefined' && window.innerWidth < 1024;
+      return {
+        rightPanelOpen: willOpen,
+        leftPanelOpen: isMobile && willOpen ? false : s.leftPanelOpen,
+      };
+    }),
+  setLeftPanelOpen: (open: boolean) =>
+    set((s) => {
+      const isMobile = typeof window !== 'undefined' && window.innerWidth < 1024;
+      return {
+        leftPanelOpen: open,
+        rightPanelOpen: isMobile && open ? false : s.rightPanelOpen,
+      };
+    }),
+  setRightPanelOpen: (open: boolean) =>
+    set((s) => {
+      const isMobile = typeof window !== 'undefined' && window.innerWidth < 1024;
+      return {
+        rightPanelOpen: open,
+        leftPanelOpen: isMobile && open ? false : s.leftPanelOpen,
+      };
+    }),
   setSystemStatusOpen: (open: boolean) => set({ systemStatusOpen: open }),
   setVesselDetailModalOpen: (open: boolean) => set({ vesselDetailModalOpen: open }),
   setNotificationDrawerOpen: (open: boolean) => set({ notificationDrawerOpen: open }),

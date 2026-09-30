@@ -52,12 +52,12 @@ export const TopNav: React.FC = () => {
 
   const navModes: { id: AppMode; label: string; shortLabel?: string; operationalOnly?: boolean }[] = [
     { id: 'overview', label: 'Overview' },
-    { id: 'detection', label: 'Live Map' },
+    { id: 'detection', label: 'Live Map', shortLabel: 'Map' },
     { id: 'analytics', label: 'History & Analytics', shortLabel: 'Analytics' },
-    { id: 'attribution', label: 'Attribution', operationalOnly: true },
-    { id: 'forecast', label: 'Forecast', operationalOnly: true },
-    { id: 'evidence', label: 'Evidence', operationalOnly: true },
-    { id: 'public-info', label: 'Public Info' },
+    { id: 'attribution', label: 'Attribution', shortLabel: 'AIS', operationalOnly: true },
+    { id: 'forecast', label: 'Forecast', shortLabel: 'Drift', operationalOnly: true },
+    { id: 'evidence', label: 'Evidence', shortLabel: 'Evidence', operationalOnly: true },
+    { id: 'public-info', label: 'Public Info', shortLabel: 'Public' },
   ];
 
   const checkScroll = useCallback(() => {
@@ -148,7 +148,7 @@ export const TopNav: React.FC = () => {
       <div className="relative flex-1 min-w-0 flex items-center mx-1 sm:mx-2 overflow-hidden">
         {/* Left Scroll Arrow & Gradient Fade */}
         {canScrollLeft && (
-          <div className="absolute left-0 inset-y-0 z-20 flex items-center pr-3 bg-gradient-to-r from-[#17324D] via-[#17324D]/95 to-transparent pointer-events-none">
+          <div className="hidden sm:flex absolute left-0 inset-y-0 z-20 items-center pr-3 bg-gradient-to-r from-[#17324D] via-[#17324D]/95 to-transparent pointer-events-none">
             <button
               type="button"
               onClick={() => scrollNav('left')}
@@ -181,7 +181,7 @@ export const TopNav: React.FC = () => {
                       ? `${mode.label} (Operational investigation view - sensitive attribution masked in public mode)`
                       : mode.label
                   }
-                  className={`relative flex items-center gap-1 px-2.5 py-1.5 text-xs transition rounded-t-sm whitespace-nowrap shrink-0 cursor-pointer ${
+                  className={`relative flex items-center gap-1 px-2 sm:px-2.5 py-1.5 text-xs transition rounded-t-sm whitespace-nowrap shrink-0 cursor-pointer ${
                     isActive
                       ? 'bg-[#0F2538] text-white font-semibold border-b-2 border-white'
                       : 'text-slate-200 hover:bg-[#1F4367] hover:text-white font-medium'
@@ -189,8 +189,8 @@ export const TopNav: React.FC = () => {
                 >
                   {mode.shortLabel ? (
                     <>
-                      <span className="hidden xl:inline">{mode.label}</span>
-                      <span className="xl:hidden">{mode.shortLabel}</span>
+                      <span className="hidden md:inline">{mode.label}</span>
+                      <span className="md:hidden">{mode.shortLabel}</span>
                     </>
                   ) : (
                     <span>{mode.label}</span>
@@ -206,7 +206,7 @@ export const TopNav: React.FC = () => {
 
         {/* Right Scroll Arrow & Gradient Fade */}
         {canScrollRight && (
-          <div className="absolute right-0 inset-y-0 z-20 flex items-center pl-3 bg-gradient-to-l from-[#17324D] via-[#17324D]/95 to-transparent pointer-events-none">
+          <div className="hidden sm:flex absolute right-0 inset-y-0 z-20 items-center pl-3 bg-gradient-to-l from-[#17324D] via-[#17324D]/95 to-transparent pointer-events-none">
             <button
               type="button"
               onClick={() => scrollNav('right')}
@@ -258,7 +258,7 @@ export const TopNav: React.FC = () => {
           className="relative flex items-center gap-1.5 rounded-sm border border-[#2F4F70] bg-[#102438] px-2 py-1 text-xs font-semibold text-slate-300 hover:text-white hover:bg-[#163350] transition shrink-0 cursor-pointer"
         >
           <Bell className="h-3.5 w-3.5 shrink-0" />
-          <span className="hidden md:inline">Alerts</span>
+          <span className="hidden sm:inline">Alerts</span>
           {unreadAlerts > 0 && (
             <span className="rounded-full bg-[#B42318] px-1 py-0.2 font-mono text-[9px] font-bold text-white leading-none shrink-0">
               {unreadAlerts < 10 ? `0${unreadAlerts}` : unreadAlerts}
@@ -287,7 +287,7 @@ export const TopNav: React.FC = () => {
         <button
           onClick={toggleCopilot}
           title="POSEIDON Maritime Intelligence Copilot"
-          className="hidden sm:flex items-center gap-1 rounded-sm border border-cyan-600 bg-cyan-900/90 px-2 py-1 text-xs font-semibold text-cyan-200 hover:bg-cyan-800 hover:text-white transition shadow-2xs shrink-0 cursor-pointer"
+          className="hidden md:flex items-center gap-1 rounded-sm border border-cyan-600 bg-cyan-900/90 px-2 py-1 text-xs font-semibold text-cyan-200 hover:bg-cyan-800 hover:text-white transition shadow-2xs shrink-0 cursor-pointer"
         >
           <Bot className="h-3.5 w-3.5 text-cyan-300 shrink-0" />
           <span className="hidden min-[1680px]:inline">Copilot</span>
@@ -296,7 +296,7 @@ export const TopNav: React.FC = () => {
         {/* Run Demonstration Action Button */}
         <button
           onClick={startDemoInvestigation}
-          className={`hidden sm:flex items-center gap-1 rounded-sm px-2 sm:px-2.5 py-1 text-xs font-medium transition border shrink-0 cursor-pointer ${
+          className={`hidden lg:flex items-center gap-1 rounded-sm px-2 sm:px-2.5 py-1 text-xs font-medium transition border shrink-0 cursor-pointer ${
             demoInvestigation.isActive
               ? 'bg-[#C47A00] border-[#995E00] text-white'
               : 'bg-[#1769AA] border-[#13588F] text-white hover:bg-[#145C96]'
@@ -327,7 +327,7 @@ export const TopNav: React.FC = () => {
         <button
           onClick={() => setSystemStatusOpen(true)}
           title="System pipeline status"
-          className="hidden sm:flex h-7 w-7 items-center justify-center rounded-sm border border-[#2F4F70] bg-[#1C3D5E] text-slate-200 hover:text-white transition shrink-0 cursor-pointer"
+          className="hidden md:flex h-7 w-7 items-center justify-center rounded-sm border border-[#2F4F70] bg-[#1C3D5E] text-slate-200 hover:text-white transition shrink-0 cursor-pointer"
         >
           <Activity className="h-3.5 w-3.5" />
         </button>

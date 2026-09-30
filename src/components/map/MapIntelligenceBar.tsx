@@ -40,8 +40,8 @@ export const MapIntelligenceBar: React.FC = () => {
   ];
 
   return (
-    <div className="absolute left-3.5 top-3.5 z-20 flex flex-col gap-2 max-w-[calc(100%-120px)] pointer-events-none">
-      <div className="flex items-center gap-2 pointer-events-auto flex-wrap">
+    <div className="absolute left-2.5 top-2.5 sm:left-3.5 sm:top-3.5 z-20 flex flex-col gap-1.5 max-w-[calc(100%-70px)] sm:max-w-[calc(100%-120px)] pointer-events-none">
+      <div className="flex items-center gap-1.5 sm:gap-2 pointer-events-auto flex-wrap">
         {/* Conventional GIS Layer Catalog button */}
         <LayerControl />
 
@@ -58,14 +58,14 @@ export const MapIntelligenceBar: React.FC = () => {
                   key={m.id}
                   onClick={() => setMapIntelligenceMode(m.id)}
                   title={m.tooltip}
-                  className={`flex items-center gap-1.5 rounded-xs px-2.5 py-1 text-xs font-semibold transition select-none ${
+                  className={`flex items-center gap-1 sm:gap-1.5 rounded-xs px-2 sm:px-2.5 py-1 text-xs font-semibold transition select-none cursor-pointer ${
                     isActive
                       ? 'bg-[#17324D] text-white shadow-2xs'
                       : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'
                   }`}
                 >
                   {m.icon}
-                  <span>{m.label}</span>
+                  <span className="hidden sm:inline">{m.label}</span>
                 </button>
               );
             })}
@@ -78,44 +78,45 @@ export const MapIntelligenceBar: React.FC = () => {
             type="button"
             onClick={fitAllIncidents}
             title="View all incidents (fit overview)"
-            className="flex items-center gap-1 rounded-xs px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition"
+            className="flex items-center gap-1 rounded-xs px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition cursor-pointer"
           >
             <Globe className="h-3.5 w-3.5 text-[#1769AA]" />
-            <span>All Incidents</span>
+            <span className="hidden md:inline">All Incidents</span>
           </button>
           <span className="h-4 w-px bg-slate-200" />
           <button
             type="button"
             onClick={() => flyToCoords(incident.coordinates, 10.4)}
             title={`Focus active incident: ${incident.id}`}
-            className="flex items-center gap-1 rounded-xs px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition"
+            className="flex items-center gap-1 rounded-xs px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition cursor-pointer"
           >
             <Crosshair className="h-3.5 w-3.5 text-[#B42318]" />
-            <span>Focus Active</span>
+            <span className="hidden md:inline">Focus Active</span>
           </button>
         </div>
 
         {/* Replay indicator pill if active */}
         {isReplayMode && (
-          <div className="flex items-center gap-1.5 rounded-sm border border-amber-300 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800 shadow-xs">
+          <div className="flex items-center gap-1.5 rounded-sm border border-amber-300 bg-amber-50 px-2 sm:px-2.5 py-1 text-xs font-semibold text-amber-800 shadow-xs">
             <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
-            <span>HISTORICAL REPLAY</span>
+            <span className="hidden sm:inline">HISTORICAL REPLAY</span>
+            <span className="sm:hidden text-[10px]">REPLAY</span>
           </div>
         )}
       </div>
 
       {/* Map Intelligence Overlay HUD (Unobtrusive Institutional Panel) */}
-      <div className="pointer-events-auto flex items-center gap-3 rounded-sm border border-[#D1D5DB] bg-white/95 backdrop-blur-xs px-3 py-1.5 text-xs text-slate-700 shadow-xs flex-wrap">
+      <div className="pointer-events-auto flex items-center gap-2 sm:gap-3 rounded-sm border border-[#D1D5DB] bg-white/95 backdrop-blur-xs px-2.5 sm:px-3 py-1 text-xs text-slate-700 shadow-xs w-fit max-w-full">
         <div className="flex items-center gap-1.5">
-          <span className="font-mono font-bold text-slate-900">{incident.id}</span>
-          <span className="text-[10px] font-sans rounded bg-slate-100 px-1.5 py-0.2 text-slate-600 border border-slate-200">
+          <span className="font-mono font-bold text-slate-900 text-xs">{incident.id}</span>
+          <span className="text-[10px] font-sans rounded bg-slate-100 px-1.5 py-0.2 text-slate-600 border border-slate-200 shrink-0">
             {incident.area_km2.toFixed(1)} km²
           </span>
         </div>
 
-        <span className="text-slate-300">|</span>
+        <span className="hidden sm:inline text-slate-300">|</span>
 
-        <div className="flex items-center gap-1.5 text-[11px]">
+        <div className="hidden sm:flex items-center gap-1.5 text-[11px] truncate">
           <Waves className="h-3 w-3 text-cyan-700 shrink-0" />
           <span className="text-slate-600">
             Wind <strong className="font-mono text-slate-800">{incident.signature.ambient_wind_knots}kt ({incident.signature.ambient_wind_direction_deg}°)</strong>
